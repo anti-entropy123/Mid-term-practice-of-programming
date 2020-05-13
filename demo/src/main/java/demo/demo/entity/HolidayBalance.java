@@ -2,7 +2,7 @@ package demo.demo.entity;
 
 public class HolidayBalance {
     private String id;
-    private String date;
+    private int balance;
     private String type;
 
     public String getId(){
@@ -12,11 +12,11 @@ public class HolidayBalance {
         this.id = id;
     }
 
-    public String getDate(){
-        return this.date;
+    public int getBalance(){
+        return this.balance;
     }
-    public void setDate(String date){
-        this.date = date;
+    public void setBalance(int balance){
+        this.balance = balance;
     }
 
     public String getType(){
