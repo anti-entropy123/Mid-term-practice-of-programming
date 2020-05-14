@@ -39,7 +39,18 @@ public class ApplicationDao {
         jdbcTemplate.update(sql, applicationTable, application.getUserId(), application.getApplicationId(), application.getStartTime(), application.getEndTime(), application.getReason(), type);
     }
 
-    public void updateLeaveApplication(LeaveApplication application){
+    // 根据 user id 和 application id 更新申请数据
+    public void updateLeaveApplication(Application application){
+        String type;
+        if(application instanceof OutApplication){
+            type = "out";
+        }else if(application instanceof LeaveApplication){
+            type = ((LeaveApplication)application).getType();
+        }else{
+            // todo 补签申请
+            type = "re-signed";
+        }
+
         String sql = 
             "update ?" +
             "set startTime = ? " +
@@ -47,19 +58,10 @@ public class ApplicationDao {
                 "reason = ?"     +
                 "type = ?"       +
             "where user_id = ? and application_id = ?";
-        jdbcTemplate.update(sql, applicationTable, application.getStartTime(), application.getEndTime(), application.getReason(), application.getType(), application.getUserId(), application.getApplicationId()); 
+        jdbcTemplate.update(sql, applicationTable, application.getStartTime(), application.getEndTime(), application.getReason(), type, application.getUserId(), application.getApplicationId()); 
     }
 
-    public void updateOutApplication(OutApplication  application){
-        String sql = 
-            "update ?" +
-            "set startTime = ? " +
-                "endTime = ?"    +
-                "reason = ?"     +
-            "where user_id = ? and application_id = ?";
-        jdbcTemplate.update(sql,applicationTable, application.getStartTime(), application.getEndTime(), application.getReason(), application.getUserId(), application.getApplicationId());
-    }
-    
+    // 
     private List<Application> transMapToApplication(List<Map<String, Object>> maps){
         List<Application> applications = new ArrayList<Application>();
         for(Map<String, Object> result: maps){
@@ -89,24 +91,28 @@ public class ApplicationDao {
         return applications;
     }
 
+    // 查询所有申请
     public List<Application> qureyAllApplication(){
         String sql = "select * from ?";
         List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, applicationTable);
         return transMapToApplication(results);
     }
 
+    // 通过 user id 查询申请记录
     public List<Application> qureyApplicationById(int id){
         String sql = "select * from ? where id=?";
         List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, applicationTable, id);
         return transMapToApplication(results);
     }
 
+    // 查询某员工的假期余额
     public List<HolidayBalance> qureyHolidayBalance(int id){
         String sql = "select * from ? where id=?";
         List<HolidayBalance> result = jdbcTemplate.query(sql, new HolidayBalanceRowMapper(), holidayBalanceTable, id);
         return result;
     }
         
+    // 为某一请求增加领导(审批)意见
     public void updateApplicationResult(LeaderOpinion opinion){
         String sql = "insert ?(application_id, leader_id, result, opinion) values(?,?,?,?)";
         jdbcTemplate.update(sql, leaderOpinionTable, opinion.getApplicationId(), opinion.getLeaderId(), opinion.getResult(), opinion.getOpinion());

@@ -4,10 +4,12 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
 
 import demo.demo.entity.Message;
 import demo.demo.mappers.MessageRowMapper;
 
+@Service
 public class MessageDao {
     @Autowired
     JdbcTemplate jdbcTemplate;
