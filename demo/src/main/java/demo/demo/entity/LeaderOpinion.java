@@ -1,22 +1,22 @@
 package demo.demo.entity;
 
 public class LeaderOpinion {
-    private String leaderId; 
-    private String applicationId;
+    private int leaderId; 
+    private int applicationId;
     private String result;
     private String opinion;
     
-    public String getLeaderId(){
+    public int getLeaderId(){
         return this.leaderId;
     }
-    public void setLeaderId(String leaderId){
+    public void setLeaderId(int leaderId){
         this.leaderId = leaderId;
     }
 
-    public String getApplicationId(){
+    public int getApplicationId(){
         return this.applicationId;
     }
-    public void setApplicationId(String applicationId){
+    public void setApplicationId(int applicationId){
         this.applicationId = applicationId;
     }
 

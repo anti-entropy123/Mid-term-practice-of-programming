@@ -11,7 +11,7 @@ public class HolidayBalanceRowMapper implements RowMapper<HolidayBalance>{
     @Override
     public HolidayBalance mapRow(ResultSet rs, int i) throws SQLException{
         HolidayBalance holidayBalance = new HolidayBalance();
-        holidayBalance.setId(rs.getString("id"));
+        holidayBalance.setId(rs.getInt("id"));
         holidayBalance.setType(rs.getString("type"));
         holidayBalance.setBalance(rs.getInt("balance"));
         

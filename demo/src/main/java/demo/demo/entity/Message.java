@@ -1,20 +1,20 @@
 package demo.demo.entity;
 
 public class Message {
-    private String userId;
-    private String applicationId;
+    private int userId;
+    private int applicationId;
     
-    public String getUserId(){
+    public int getUserId(){
         return this.userId;
     }
-    public void setUserId(String userId){
+    public void setUserId(int userId){
         this.userId = userId;
     }
 
-    public String getApplicationId(){
+    public int getApplicationId(){
         return this.applicationId;
     }
-    public void setApplicationId(String applicationId){
+    public void setApplicationId(int applicationId){
         this.applicationId = applicationId;
     }
 }

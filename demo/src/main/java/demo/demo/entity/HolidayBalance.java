@@ -1,14 +1,14 @@
 package demo.demo.entity;
 
 public class HolidayBalance {
-    private String id;
+    private int id;
     private int balance;
     private String type;
 
-    public String getId(){
+    public int getId(){
         return this.id;
     }
-    public void setId(String id){
+    public void setId(int id){
         this.id = id;
     }
 

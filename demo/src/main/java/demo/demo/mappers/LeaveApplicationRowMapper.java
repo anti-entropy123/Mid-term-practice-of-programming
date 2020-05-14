@@ -11,10 +11,10 @@ public class LeaveApplicationRowMapper implements RowMapper<LeaveApplication>{
     @Override
     public LeaveApplication mapRow(ResultSet rs, int i) throws SQLException{
         LeaveApplication leaveApplication = new LeaveApplication();
-        leaveApplication.setApplicationId(rs.getString("application_id"));
+        leaveApplication.setApplicationId(rs.getInt("application_id"));
         leaveApplication.setStartTime(rs.getString("startTime"));
         leaveApplication.setEndTime(rs.getString("endTime"));
-        leaveApplication.setUserId(rs.getString("user_id"));
+        leaveApplication.setUserId(rs.getInt("user_id"));
         leaveApplication.setReason(rs.getString("user_reason"));
         leaveApplication.setType(rs.getString("type"));
         return leaveApplication;

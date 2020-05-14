@@ -1,13 +1,13 @@
 package demo.demo.entity;
 
 public class OverTime {
-    private String userId;
+    private int userId;
     private String date;
 
-    public String getUserId(){
+    public int getUserId(){
         return this.userId;
     }
-    public void setUserId(String userId){
+    public void setUserId(int userId){
         this.userId = userId;
     }
 

@@ -12,10 +12,10 @@ public class OutApplicationRowMapper implements RowMapper<OutApplication> {
     @Override
     public OutApplication mapRow(ResultSet rs,int i) throws SQLException {
         OutApplication outApplication = new OutApplication();
-        outApplication.setApplicationId(rs.getString("application_id"));
+        outApplication.setApplicationId(rs.getInt("application_id"));
         outApplication.setStartTime(rs.getString("startTime"));
         outApplication.setEndTime(rs.getString("endTime"));
-        outApplication.setUserId(rs.getString("user_id"));
+        outApplication.setUserId(rs.getInt("user_id"));
         outApplication.setReason(rs.getString("user_reason"));
         return outApplication;
     }

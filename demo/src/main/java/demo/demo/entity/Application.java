@@ -1,23 +1,32 @@
 package demo.demo.entity;
 
-public class Application {
-    private String applicationId;
-    private String userId;
+public abstract class Application {
+    private int applicationId;
+    private int userId;
     private String startTime;
     private String endTime;
     private String reason;
 
-    public String getApplicationId(){
+    Application(){}
+    Application(int applicationId, int userId, String startTime, String endTime, String reason){
+        this.applicationId = applicationId;
+        this.userId = userId;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.reason = reason;
+    }
+
+    public int getApplicationId(){
         return this.applicationId;
     }
-    public void setApplicationId(String applicationId){
+    public void setApplicationId(int applicationId){
         this.applicationId = applicationId;
     }
 
-    public String getUserId(){
+    public int getUserId(){
         return this.userId;
     }
-    public void setUserId(String userId){
+    public void setUserId(int userId){
         this.userId = userId;
     }
 

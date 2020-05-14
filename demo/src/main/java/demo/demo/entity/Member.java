@@ -1,15 +1,15 @@
 package demo.demo.entity;
 
 public class Member {
-    private String id;
+    private int id;
     private String name;
     private String password;
     private String title;
     
-    public String getId(){
+    public int getId(){
         return this.id;
     }
-    public void setId(String id){
+    public void setId(int id){
         this.id = id;
     }
 
