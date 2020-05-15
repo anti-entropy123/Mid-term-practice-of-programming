@@ -24,8 +24,12 @@ public class ApplicationDao {
     private String holidayBalanceTable = "holiday_balance";
     private String leaderOpinionTable = "leader_opinion";
 
-    // 增加申请
-    public void insertLeaveApplication(Application application){
+    /*
+        作用:   增加一条申请
+        输入:   要增加的申请, 例如如果增加一个外出申请, 就传来一个OutApplication的实例
+        返回:   无
+    */
+    public void insertApplication(Application application){
         String type;
         if(application instanceof OutApplication){
             type = "out";
@@ -39,7 +43,22 @@ public class ApplicationDao {
         jdbcTemplate.update(sql, applicationTable, application.getUserId(), application.getApplicationId(), application.getStartTime(), application.getEndTime(), application.getReason(), type);
     }
 
-    public void updateLeaveApplication(LeaveApplication application){
+    /* 
+        作用:   根据 user id 和 application id 更新申请数据
+        输入:   需要更新的申请, 注意必须保证传来的application中的userId和applicationId都是正确的, 否则无法更新
+        返回:   无
+    */
+    public void updateApplication(Application application){
+        String type;
+        if(application instanceof OutApplication){
+            type = "out";
+        }else if(application instanceof LeaveApplication){
+            type = ((LeaveApplication)application).getType();
+        }else{
+            // todo 补签申请
+            type = "re-signed";
+        }
+
         String sql = 
             "update ?" +
             "set startTime = ? " +
@@ -47,19 +66,12 @@ public class ApplicationDao {
                 "reason = ?"     +
                 "type = ?"       +
             "where user_id = ? and application_id = ?";
-        jdbcTemplate.update(sql, applicationTable, application.getStartTime(), application.getEndTime(), application.getReason(), application.getType(), application.getUserId(), application.getApplicationId()); 
+        jdbcTemplate.update(sql, applicationTable, application.getStartTime(), application.getEndTime(), application.getReason(), type, application.getUserId(), application.getApplicationId()); 
     }
 
-    public void updateOutApplication(OutApplication  application){
-        String sql = 
-            "update ?" +
-            "set startTime = ? " +
-                "endTime = ?"    +
-                "reason = ?"     +
-            "where user_id = ? and application_id = ?";
-        jdbcTemplate.update(sql,applicationTable, application.getStartTime(), application.getEndTime(), application.getReason(), application.getUserId(), application.getApplicationId());
-    }
-    
+    /*
+        内部使用
+    */
     private List<Application> transMapToApplication(List<Map<String, Object>> maps){
         List<Application> applications = new ArrayList<Application>();
         for(Map<String, Object> result: maps){
@@ -89,24 +101,45 @@ public class ApplicationDao {
         return applications;
     }
 
+    /*
+        作用:   查询所有申请
+        输入:   无
+        返回:   所有的申请数据, 包括外出, 请假等
+    */
     public List<Application> qureyAllApplication(){
         String sql = "select * from ?";
         List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, applicationTable);
         return transMapToApplication(results);
     }
 
+    /*
+        作用:   通过 user id 查询申请记录
+        输入:   用户的id   
+        返回:   某一位用户的所有的申请记录, 包括外出, 请假等
+    */
     public List<Application> qureyApplicationById(int id){
         String sql = "select * from ? where id=?";
         List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, applicationTable, id);
         return transMapToApplication(results);
     }
 
+    /* 
+        作用:   查询某员工的假期余额
+        输入:   某位员工的id
+        返回:   该员工的所有假期的余额的数据    
+    */
     public List<HolidayBalance> qureyHolidayBalance(int id){
         String sql = "select * from ? where id=?";
         List<HolidayBalance> result = jdbcTemplate.query(sql, new HolidayBalanceRowMapper(), holidayBalanceTable, id);
         return result;
     }
         
+    /*
+        作用:   为某一请求增加领导(审批)意见, 注意, 是增加, 而不是修改现有的
+                (因为一个申请往往需要多个领导的审批)
+        输入:   领导意见实例对象
+        返回:   无
+    */
     public void updateApplicationResult(LeaderOpinion opinion){
         String sql = "insert ?(application_id, leader_id, result, opinion) values(?,?,?,?)";
         jdbcTemplate.update(sql, leaderOpinionTable, opinion.getApplicationId(), opinion.getLeaderId(), opinion.getResult(), opinion.getOpinion());
