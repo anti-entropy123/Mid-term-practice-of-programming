@@ -15,32 +15,20 @@ public class RecordDao {
     JdbcTemplate jdbcTemplate;
     String recordTable = "record";
 
-    /* 
-        作用:   插入一条签到记录
-        输入:   签到记录实例
-        返回:   无
-    */
+    // 插入一条记录
     public void insertSignInRecord(Record r){
         String sql = "insert ?(id, date, status) values(?, ?, ?)";
         jdbcTemplate.update(sql, recordTable, r.getId() , r.getDate(), r.getStatus());
     }
 
-    /* 
-        作用:   根据用户id查询打卡记录
-        输入:   某用户的id
-        返回:   该用户所有的打卡记录
-    */
+    // 根据用户id查询打卡记录
     public List<Record> qureyPersonRecords(int id){
         String sql = "select * from ? where id=?";
         List<Record> records = jdbcTemplate.query(sql, new RecordRowMapper(), recordTable, id);
         return records;
     }
         
-    /* 
-        作用:   查询所有人的所有打卡记录
-        输入:   无
-        返回:   所有员工所有的打卡记录
-    */
+    // 查询所有人的所有打卡记录
     public List<Record> qureyAllRecord(){
         String sql = "select * from ?";
         List<Record> records = jdbcTemplate.query(sql, new RecordRowMapper(), recordTable);

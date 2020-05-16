@@ -1,20 +1,16 @@
 package demo.demo.dao;
 
-import demo.demo.entity.Member;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import demo.demo.entity.TestDO;
 
-class TestDao {
-    public static void main(String[] args) {
-        ApplicationDao applicationDao = new ApplicationDao();
-        MemberDao      memberDao      = new MemberDao();
-        MessageDao     messageDao     = new MessageDao();
-        OverTimeDao    overTimeDao    = new OverTimeDao();
-        RecordDao      recordDao      = new RecordDao();
-        
-        Member m = new Member();
-        m.setId(1234);
-        m.setName("希儿");
-        m.setPassword("尤嘉宁");
-        m.setTitle("副总经理");
-        memberDao.insertMember(m);
+@Service
+public class TestDao {
+    @Autowired
+    public JdbcTemplate jdbcTemplate;
+
+    public TestDO queryDO(){
+        return new TestDO(1,"yjn");
     }
 }
