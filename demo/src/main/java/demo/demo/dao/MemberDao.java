@@ -23,8 +23,9 @@ public class MemberDao {
         返回:   该用户所有个人数据, 包括密码等
     */
     public Member qureyUser(int id){
-        String sql = "select * from ? where id = ?";
-        Member member = jdbcTemplate.queryForObject(sql, new MemberRowMapper(), memberTable, Integer.valueOf(id));
+        String sql = "select * from "+ memberTable + " where id = ?";
+        Member member = jdbcTemplate.queryForObject(sql, new MemberRowMapper(), id);
+
         return member;
     } 
 
@@ -34,8 +35,8 @@ public class MemberDao {
         返回:   该用户的密码
     */
     public String qureyUserPassword(int id){
-        String sql = "select password from ? where id = ?";
-        Map<String, Object> result = jdbcTemplate.queryForMap(sql, memberTable, Integer.valueOf(id));
+        String sql = "select password from " + memberTable + " where id = ?";
+        Map<String, Object> result = jdbcTemplate.queryForMap(sql, id);
         return (String)result.getOrDefault("password", "null");
     }
 
@@ -45,8 +46,8 @@ public class MemberDao {
         返回:   所有用户的所有数据
     */
     public List<Member> qureyMembersList(){
-        String sql = "select * from ?";
-        List<Member> members = jdbcTemplate.query(sql, new MemberRowMapper(), memberTable);
+        String sql = "select * from " + memberTable;
+        List<Member> members = jdbcTemplate.query(sql, new MemberRowMapper());
         return members;
     }
 
@@ -56,7 +57,7 @@ public class MemberDao {
         返回:   无
     */
     public void insertMember(Member m){
-        String sql = "insert ?(id, password, name, title) values(?,?,?,?)";
-        jdbcTemplate.update(sql, memberTable, m.getId(), m.getPassword(), m.getName(), m.getTitle());
+        String sql = "insert " + memberTable + " (id, password, name, title) values(?,?,?,?)";
+        jdbcTemplate.update(sql, m.getId(), m.getPassword(), m.getName(), m.getTitle());
     }
 }

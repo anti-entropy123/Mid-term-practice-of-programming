@@ -22,8 +22,8 @@ public class MessageDao {
         返回:   消息对象列表
     */
     public List<Message> qureyPersonMessage(int id){
-        String sql = "select * from ? where user_id = ?";
-        List<Message> results = jdbcTemplate.query(sql, new MessageRowMapper(), MessageTable);
+        String sql = "select * from " + MessageTable + " where user_id = ?";
+        List<Message> results = jdbcTemplate.query(sql, new MessageRowMapper(), id);
         return results;
     }
 
@@ -33,7 +33,7 @@ public class MessageDao {
         返回:   无
     */
     public void insertMessage(Message m){
-        String sql = "insert ?(user_id, application_id) values(?,?)";
-        jdbcTemplate.update(sql, MessageTable, m.getUserId(), m.getApplicationId());
+        String sql = "insert "+ MessageTable + " (user_id, application_id) values(?,?)";
+        jdbcTemplate.update(sql, m.getUserId(), m.getApplicationId());
     } 
 }

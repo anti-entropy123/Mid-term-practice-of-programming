@@ -21,8 +21,8 @@ public class RecordDao {
         返回:   无
     */
     public void insertSignInRecord(Record r){
-        String sql = "insert ?(id, date, status) values(?, ?, ?)";
-        jdbcTemplate.update(sql, recordTable, r.getId() , r.getDate(), r.getStatus());
+        String sql = "insert " + recordTable + "(id, date, status) values(?, ?, ?)";
+        jdbcTemplate.update(sql, r.getId() , r.getDate(), r.getStatus());
     }
 
     /* 
@@ -31,8 +31,8 @@ public class RecordDao {
         返回:   该用户所有的打卡记录
     */
     public List<Record> qureyPersonRecords(int id){
-        String sql = "select * from ? where id=?";
-        List<Record> records = jdbcTemplate.query(sql, new RecordRowMapper(), recordTable, id);
+        String sql = "select * from " + recordTable + " where id=?";
+        List<Record> records = jdbcTemplate.query(sql, new RecordRowMapper(), id);
         return records;
     }
         
@@ -42,8 +42,8 @@ public class RecordDao {
         返回:   所有员工所有的打卡记录
     */
     public List<Record> qureyAllRecord(){
-        String sql = "select * from ?";
-        List<Record> records = jdbcTemplate.query(sql, new RecordRowMapper(), recordTable);
+        String sql = "select * from " + recordTable;
+        List<Record> records = jdbcTemplate.query(sql, new RecordRowMapper());
         return records;
     }
 }

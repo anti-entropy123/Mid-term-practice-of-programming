@@ -6,6 +6,14 @@ public class Member {
     private String password;
     private String title;
     
+    public Member(){}
+    public Member(int userId, String name, String password, String title){
+        this.id = userId;
+        this.name = name;
+        this.password = password;
+        this.title = title;
+    }
+
     public int getId(){
         return this.id;
     }

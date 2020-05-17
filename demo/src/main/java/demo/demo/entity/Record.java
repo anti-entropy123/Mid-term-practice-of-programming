@@ -5,6 +5,13 @@ public class Record {
     private String date;
     private String status;
 
+    public Record(){}
+    public Record(int userId, String date, String status){
+        this.id = userId;
+        this.date = date;
+        this.status = status;
+    }
+
     public int getId(){
         return this.id;
     }

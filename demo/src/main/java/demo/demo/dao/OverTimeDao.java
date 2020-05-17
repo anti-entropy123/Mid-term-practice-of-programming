@@ -14,7 +14,7 @@ import demo.demo.mappers.OverTimeRowMapper;
 public class OverTimeDao {
     @Autowired
     JdbcTemplate jdbcTemplate;
-    private String overTimeTable = "overtime";
+    final private String overTimeTable = "overtime";
 
     /*
         作用:   增加一个加班记录
@@ -22,8 +22,8 @@ public class OverTimeDao {
         返回:   无
     */
     public void insertOvertimeRecord(OverTime overTime){
-        String sql = "insert ?(user_id, date) values(?,?)";
-        jdbcTemplate.update(sql, overTimeTable, overTime.getUserId(), overTime.getDate());
+        String sql = "insert " + overTimeTable + "(user_id, date) values(?,?)";
+        jdbcTemplate.update(sql, overTime.getUserId(), overTime.getDate());
     }
     
     /*
@@ -32,8 +32,8 @@ public class OverTimeDao {
         返回:   该用户所有加班记录
     */
     public List<OverTime> queryOvertimeById(int id){
-        String sql = "select * from ? where id=?";
-        List<OverTime> results = jdbcTemplate.query(sql, new OverTimeRowMapper(), overTimeTable, id);
+        String sql = "select * from " + overTimeTable + " where user_id=?";
+        List<OverTime> results = jdbcTemplate.query(sql, new OverTimeRowMapper(), id);
         return results;
     }
 }
