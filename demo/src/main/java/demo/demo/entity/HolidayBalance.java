@@ -5,6 +5,13 @@ public class HolidayBalance {
     private int balance;
     private String type;
 
+    public HolidayBalance(){}
+    public HolidayBalance(int userId, int balance, String type){
+        this.id = userId;
+        this.balance = balance;
+        this.type = type;
+    }
+
     public int getId(){
         return this.id;
     }
