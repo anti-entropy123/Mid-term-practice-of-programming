@@ -46,4 +46,15 @@ public class RecordDao {
         List<Record> records = jdbcTemplate.query(sql, new RecordRowMapper());
         return records;
     }
+
+    /*
+        作用:   查询某日某用户的签到记录
+        输入:   用户 id 和 日期字符串
+        输出:   一个 Record 对象
+    */
+    public Record qureyRecordByDate(int id, String date){
+        String sql = "select * from " + recordTable + " where id = ? and date = ?" ;
+        Record result = jdbcTemplate.queryForObject(sql, new RecordRowMapper(), id, date);
+        return result;
+    }
 }

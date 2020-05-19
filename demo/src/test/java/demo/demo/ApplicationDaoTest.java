@@ -132,4 +132,29 @@ public class ApplicationDaoTest extends TestBase{
         initObj();
         applicationDao.updateApplicationResult(lo);
     }
+
+    @Test
+    public void testQureyLeaderOpinion(){
+        List<LeaderOpinion> results = applicationDao.qureyLeaderOpinionByAppId(1);
+        for(LeaderOpinion leaderOpinion: results){
+            System.out.println(leaderOpinion.getLeaderId() + " " + leaderOpinion.getOpinion() + " " + leaderOpinion.getResult());
+        }
+    }
+
+    @Test
+    public void testQureyAppByDate(){
+        System.out.println(applicationDao.qureyApplicationByDate(123, "2020/05/13").getApplicationId());
+        System.out.println(applicationDao.qureyApplicationByDate(123, "2020/05/15").getApplicationId());
+        try{    
+            System.out.println(applicationDao.qureyApplicationByDate(123, "2020/07/20").getApplicationId());    
+        }catch(NullPointerException e){
+            System.out.println("null");
+        }
+        try{    
+            System.out.println(applicationDao.qureyApplicationByDate(123, "2020/07/23").getApplicationId());    
+        }catch(NullPointerException e){
+            System.out.println("null");
+        }
+        
+    }
 }

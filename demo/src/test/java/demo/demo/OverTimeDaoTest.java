@@ -23,5 +23,12 @@ public class OverTimeDaoTest extends TestBase{
         for(OverTime overTime: overTimes){
             System.out.println(overTime.getDate());
         }
+
+        overTimes = overTimeDao.queryOvertimeByDate("2020/5/17");
+        for(OverTime overTime: overTimes){
+            System.out.println(overTime.getUserId());
+        }
     }
+
+
 }

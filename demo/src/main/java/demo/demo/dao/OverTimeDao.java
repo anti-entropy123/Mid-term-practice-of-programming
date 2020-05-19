@@ -1,5 +1,6 @@
 package demo.demo.dao;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ public class OverTimeDao {
     @Autowired
     JdbcTemplate jdbcTemplate;
     final private String overTimeTable = "overtime";
+    final private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd");
 
     /*
         作用:   增加一个加班记录
@@ -35,5 +37,17 @@ public class OverTimeDao {
         String sql = "select * from " + overTimeTable + " where user_id=?";
         List<OverTime> results = jdbcTemplate.query(sql, new OverTimeRowMapper(), id);
         return results;
+    }
+
+
+    /*
+        作用:   通过 date 查询加班记录
+        输入:   date字符串
+        返回:   加班记录列表
+    */
+    public List<OverTime> queryOvertimeByDate(String date){
+        String sql = "select * from " + overTimeTable + " where date = ?";
+        List<OverTime> overTimes = jdbcTemplate.query(sql, new OverTimeRowMapper(), date);
+        return overTimes;
     }
 }

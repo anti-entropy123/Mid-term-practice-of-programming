@@ -29,4 +29,9 @@ public class RecordDaoTest extends TestBase{
             System.out.println(String.format("%s %s %s", r.getId(), r.getDate(), r.getStatus()));
         }
     }
+
+    @Test
+    public void testQureyRecordByDate(){
+        System.out.println(recordDao.qureyRecordByDate(123, "2020/05/17").getStatus());
+    }
 }
