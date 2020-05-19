@@ -2,9 +2,8 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import router from './router'
 import ElementUI from 'element-ui'
-
+import './theme/index.css'
 import App from './App.vue'
-
 import axios from 'axios'
 import qs from 'qs'
 
