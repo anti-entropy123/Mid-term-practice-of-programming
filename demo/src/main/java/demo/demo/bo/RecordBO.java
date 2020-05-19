@@ -8,6 +8,7 @@ public class RecordBO implements BusinessObject {
 	private String date;
 	private String status;
 	
+	public RecordBO() {}
 	public RecordBO(String date, String status) {
 		this.date = date;
 		this.status = status;

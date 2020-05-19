@@ -4,6 +4,12 @@ public class Message {
     private int userId;
     private int applicationId;
     
+    public Message(){}
+    public Message(int userId, int applicationId){
+        this.userId = userId;
+        this.applicationId = applicationId;
+    }
+
     public int getUserId(){
         return this.userId;
     }

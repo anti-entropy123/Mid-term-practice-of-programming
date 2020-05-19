@@ -12,12 +12,17 @@ public class UserListVO implements ViewObject {
 	
 	private List<MemberBO> members = new ArrayList<MemberBO>();
 
+	public UserListVO() {}
 	public UserListVO(List<MemberBO> members) {
 		this.members = members;
 	}
 	
 	public List<MemberBO> getMembers() {
 		return this.members;
+	}
+	
+	public void setMembers(List<MemberBO> members) {
+		this.members = members;
 	}
 	
 }

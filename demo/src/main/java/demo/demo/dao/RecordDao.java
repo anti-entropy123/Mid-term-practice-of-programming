@@ -15,23 +15,46 @@ public class RecordDao {
     JdbcTemplate jdbcTemplate;
     String recordTable = "record";
 
-    // 插入一条记录
+    /* 
+        作用:   插入一条签到记录
+        输入:   签到记录实例
+        返回:   无
+    */
     public void insertSignInRecord(Record r){
-        String sql = "insert ?(id, date, status) values(?, ?, ?)";
-        jdbcTemplate.update(sql, recordTable, r.getId() , r.getDate(), r.getStatus());
+        String sql = "insert " + recordTable + "(id, date, status) values(?, ?, ?)";
+        jdbcTemplate.update(sql, r.getId() , r.getDate(), r.getStatus());
     }
 
-    // 根据用户id查询打卡记录
+    /* 
+        作用:   根据用户id查询打卡记录
+        输入:   某用户的id
+        返回:   该用户所有的打卡记录
+    */
     public List<Record> qureyPersonRecords(int id){
-        String sql = "select * from ? where id=?";
-        List<Record> records = jdbcTemplate.query(sql, new RecordRowMapper(), recordTable, id);
+        String sql = "select * from " + recordTable + " where id=?";
+        List<Record> records = jdbcTemplate.query(sql, new RecordRowMapper(), id);
         return records;
     }
         
-    // 查询所有人的所有打卡记录
+    /* 
+        作用:   查询所有人的所有打卡记录
+        输入:   无
+        返回:   所有员工所有的打卡记录
+    */
     public List<Record> qureyAllRecord(){
-        String sql = "select * from ?";
-        List<Record> records = jdbcTemplate.query(sql, new RecordRowMapper(), recordTable);
+        String sql = "select * from " + recordTable;
+        List<Record> records = jdbcTemplate.query(sql, new RecordRowMapper());
         return records;
+    }
+
+    /*
+        作用:   查询某日某用户的签到记录
+        输入:   用户 id 和 日期字符串
+        输出:   一个 Record 对象
+    */
+    public Record qureyRecordByDate(int id, String date){
+        String sql = "select * from " + recordTable + " where id = ? and date = ?" ;
+        Record result = jdbcTemplate.queryForObject(sql, new RecordRowMapper(), id, date);
+        return result;
     }
 }

@@ -8,11 +8,14 @@ public class MemberBO implements BusinessObject {
 	private int id;
 	private String name;
 	private String title;
+	private String status = null;
 	
-	public MemberBO(int id, String name, String title) {
+	public MemberBO() {}
+	public MemberBO(int id, String name, String title, String status) {
 		this.id = id;
 		this.name = name;
 		this.title = title;
+		this.status = status;
 	}
 
 	public int getId() {
@@ -37,6 +40,14 @@ public class MemberBO implements BusinessObject {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+	
+	public String getStatus() {
+		return status;
+	}
+	
+	public void setStatus(String status) {
+		this.status = status;
 	}
 	
 }

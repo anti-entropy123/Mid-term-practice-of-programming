@@ -6,6 +6,14 @@ public class LeaderOpinion {
     private String result;
     private String opinion;
     
+    public LeaderOpinion(){}
+    public LeaderOpinion(int leaderId, int applicationId, String result, String opinion){
+        this.leaderId = leaderId;
+        this.applicationId = applicationId;
+        this.result = result;
+        this.opinion = opinion;
+    }
+
     public int getLeaderId(){
         return this.leaderId;
     }

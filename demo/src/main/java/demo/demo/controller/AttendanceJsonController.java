@@ -1,5 +1,12 @@
 package demo.demo.controller;
 
+import java.util.List;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -8,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import demo.demo.bo.MinLeaveApplicationBO;
+import demo.demo.bo.MinOutApplicationBO;
+import demo.demo.bo.UserDataBO;
 import demo.demo.requestbody.IdInfo;
 import demo.demo.requestbody.LeaveInfo;
 import demo.demo.requestbody.LogInfo;
@@ -77,10 +87,13 @@ public class AttendanceJsonController {
 	
 	/*
 	 * 用户登录
+	 * done1
 	 */
 	@PostMapping("/api/user/")
-	void logIn(@RequestBody LogInfo logInfo) {
-		userService.logIn(logInfo);
+	void logIn(ServletResponse response,@RequestBody LogInfo logInfo) {
+		HttpServletResponse httpResponse = (HttpServletResponse) response;
+		Cookie cookie = new Cookie("token", userService.logIn(logInfo));
+		httpResponse.addCookie(cookie);
 	}
 	
 //	/*
@@ -92,6 +105,7 @@ public class AttendanceJsonController {
 	
 	/*
 	 * 加班登记
+	 * done1
 	 */
 	@PostMapping("/api/record/overtime")
 	void overtimeRecord(@RequestBody OvertimeInfo overtimeInfo) {
@@ -100,6 +114,8 @@ public class AttendanceJsonController {
 	
 	/*
 	 * 请假申请
+	 * done1
+	 * waiting //没有完成修改剩余假期时间 和 添加通知
 	 */
 	@PostMapping("/api/application/leave")
 	void leaveApplication(@RequestBody LeaveInfo leaveInfo) {
@@ -108,6 +124,8 @@ public class AttendanceJsonController {
 	
 	/*
 	 * 外出申请
+	 * done1
+	 * waiting // 没有完成添加通知
 	 */
 	@PostMapping("/api/application/out")
 	void outApplication(@RequestBody OutInfo outInfo) {
@@ -116,6 +134,7 @@ public class AttendanceJsonController {
 	
 	/*
 	 * 补签申请
+	 * next version
 	 */
 	@PostMapping("/api/application/remedy")
 	void remedyApplication(@RequestBody RemedyInfo remedyInfo) {
@@ -124,6 +143,8 @@ public class AttendanceJsonController {
 	
 	/*
 	 * 修改请假申请
+	 * done1
+	 * waiting //没有完成修改剩余假期时间 和 添加通知
 	 */
 	@PostMapping("/api/application/mod/leave")
 	void updateLeaveApplication(@RequestBody ModifyLeaveInfo modifyLeaveInfo) {
@@ -132,6 +153,8 @@ public class AttendanceJsonController {
 	
 	/*
 	 * 修改外出申请
+	 * done1
+	 * waiting // 没有完成添加通知
 	 */
 	@PostMapping("/api/application/mod/out")
 	void updateOutApplication(@RequestBody ModifyOutInfo modifyOutInfo) {
@@ -140,6 +163,7 @@ public class AttendanceJsonController {
 	
 	/*
 	 * 修改补签申请
+	 * next version
 	 */
 	@PostMapping("/api/application/mod/remedy")
 	void updateRemedyApplication(@RequestBody ModifyRemedyInfo modifyRemedyInfo) {
@@ -148,100 +172,119 @@ public class AttendanceJsonController {
 	
 	/*
 	 * 查看个人考勤记录
+	 * done1
 	 */
 	@GetMapping("/api/record")
 	PersonRecordVO getRecords(@RequestBody IdInfo id) {
-		recordService.getRecordsById(id.getId());
-		return null;
+		return new PersonRecordVO(recordService.getRecordsById(id.getId()));
 	}
 	
 	/*
 	 * 查看个人状态
+	 * done1
 	 */
 	@GetMapping("/api/user/status")
 	CurrentStatusVO getStatus(@RequestBody IdInfo id) {
-		userService.getStatusById(id.getId());//String
-		return null;
+		String status = userService.getStatusById(id.getId());//String
+		return new CurrentStatusVO(status);
 	}
 	
 	/*
-	 * 查看个人假期（年假）剩余情况
+	 * 查看个人假期剩余情况
+	 * done1
 	 */
 	@GetMapping("/api/user/Holidaybalance")
 	HolidayBalanceVO getHolidayBalance(@RequestBody IdInfo id) {
-		leaveService.getHolidayBalanceById(id.getId());
-		return null;
+		return new HolidayBalanceVO(leaveService.getHolidayBalanceById(id.getId()));
 	}
 	
 	/*
 	 * 查看全体员工列表
+	 * done1
 	 */
 	@GetMapping("/api/user/employees")
 	UserListVO getMembersList(@RequestBody IdInfo id) {
-		userService.getMembers();
-		return null;
+		return new UserListVO(userService.getMembers());
 	}
 	
 	/*
 	 * 查看其他员工状态
+	 * done1
 	 */
 	@GetMapping("/api/user/employees/{otherUserId}")
 	OtherMemberStatusVO getOthersStatus(@RequestBody IdInfo id, @PathVariable int otherUserId) {
-		userService.getStatusById(otherUserId);
-		return null;
+		int userId = otherUserId;
+		String name = userService.getNameById(otherUserId);
+		String status = userService.getStatusById(otherUserId);
+		return new OtherMemberStatusVO(userId, name, status);
 	}
 	
 	/*
 	 * 获取系统处理后的数据
 	 * 某个人的全部数据
+	 * done1
 	 */
 	@GetMapping("/api/administration-department/after-process/data")
 	UserDataVO getUserDataById(@RequestBody IdInfo id) {
-		userService.getNameById(id.getId());
-		leaveService.getMinLeaveApplicationById(id.getId());
-		outService.getMinOutApplicationById(id.getId());
-		recordService.getUnsignedById(id.getId());
-		overtimeService.getOvertimeById(id.getId());
-		return null;
+		String userName = userService.getNameById(id.getId());
+		List<MinLeaveApplicationBO> leaves = leaveService.getMinLeaveApplicationById(id.getId());
+		List<MinOutApplicationBO> outs = outService.getMinOutApplicationById(id.getId());
+		int unsigned = recordService.getUnsignedById(id.getId());
+		int overTime = overtimeService.getOvertimeById(id.getId());
+		UserDataBO data = new UserDataBO();
+		data.setUserName(userName);
+		data.setLeaves(leaves);
+		data.setOuts(outs);
+		data.setUnsigned(unsigned);
+		data.setOverTime(overTime);
+		return new UserDataVO(data);
 	}
 	
 	/*
 	 * 获取自己的申请信息
+	 * done1
 	 */
 	@GetMapping("/api/user/messages/application/")
 	MessagesVO getApplications(@RequestParam(name = "type") int type, @RequestBody IdInfo id) {
-		leaveService.getApplicationResultById(id.getId());
-		outService.getApplicationResultById(id.getId());
-		return null;
+		if (type == 0) {
+			return new MessagesVO(leaveService.getApplicationResultById(id.getId()));
+		} else {
+			return new MessagesVO(outService.getApplicationResultById(id.getId()));
+		}
 	}
 	
 	/*
 	 * 获取自己要处理的信息
+	 * done1
 	 */
 	@GetMapping("/api/user/messages/process-application/")
 	MessagesVO getProcess(@RequestParam(name = "type") int type, @RequestBody IdInfo id) {
-		leaveService.getNeedToProcessById(id.getId());
-		outService.getNeedToProcessById(id.getId());
-		return null;
+		if (type == 0) {
+			return new MessagesVO(leaveService.getNeedToProcessById(id.getId()));
+		} else {
+			return new MessagesVO(outService.getNeedToProcessById(id.getId()));
+		}
 	}
 	
 	/*
 	 * 处理请假申请
+	 * done1
+	 * waiting 没有完成添加通知
 	 */
 	@PostMapping("/api/application/process-command")
 	void processApplication(@RequestBody ProcessInfo processInfo) {
-		leaveService.addOpinion(processInfo);
-		outService.addOpinion(processInfo);
+		if (!leaveService.addOpinion(processInfo)) {
+			outService.addOpinion(processInfo);
+		}
 	}
 	
 	/*
 	 * 查看其他管理者的审批情况
+	 * done1
 	 */
 	@GetMapping("/api/manager/approval-results")
 	ApplicationForBossVO getApplicationResults(@RequestBody IdInfo id) {
-		leaveService.getProcessApplicationResultsById(id.getId());
-		outService.getProcessApplicationResultsById(id.getId());
-		return null;
+		return new ApplicationForBossVO(leaveService.getProcessApplicationResultsById(id.getId()));
 	}
 	
 	/*
@@ -249,8 +292,8 @@ public class AttendanceJsonController {
 	 */
 	@GetMapping("/api/manager/all/leaving-members")
 	LeaveMembersVO getLeaveMembers(@RequestBody IdInfo id) {
-		leaveService.getLeaveMembers();
-		return null;
+		LeaveMembersVO lmv = new LeaveMembersVO(leaveService.getLeaveMembers());
+		return lmv;
 	}
 	
 	/*
@@ -258,8 +301,8 @@ public class AttendanceJsonController {
 	 */
 	@GetMapping("/api/manager/all/outing-members")
 	OutMembersVO getOutMembers(@RequestBody IdInfo id) {
-		outService.getOutMembers();
-		return null;
+		OutMembersVO omv = new OutMembersVO(outService.getOutMembers());
+		return omv;
 	}
 	
 	/*
@@ -267,7 +310,7 @@ public class AttendanceJsonController {
 	 */
 	@GetMapping("/api/manager/all/overtime-members")
 	OverTimeMembersVO getOvertimeMembers(@RequestBody IdInfo id) {
-		overtimeService.getOvertimeMembers();
-		return null;
+		OverTimeMembersVO otv = new OverTimeMembersVO(overtimeService.getOvertimeMembers());
+		return otv;
 	}
 }

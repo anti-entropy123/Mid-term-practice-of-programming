@@ -1,8 +1,5 @@
 package demo.demo.bo;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ApplicationForBossBO implements BusinessObject {
 
 	private int id;
@@ -10,7 +7,7 @@ public class ApplicationForBossBO implements BusinessObject {
 	private String endTime;
 	private String type;
 	private String reason;
-	private List<LeaderOpinionBO> leadersOpinion = new ArrayList<LeaderOpinionBO>();
+	private LeaderOpinionBO leadersOpinion;
 	
 	public ApplicationForBossBO() {
 		
@@ -56,11 +53,11 @@ public class ApplicationForBossBO implements BusinessObject {
 		this.reason = reason;
 	}
 	
-	public List<LeaderOpinionBO> getLeadersOpinion() {
+	public LeaderOpinionBO getLeadersOpinion() {
 		return leadersOpinion;
 	}
 	
-	public void setLeadersOpinion(List<LeaderOpinionBO> leadersOpinion) {
+	public void setLeadersOpinion(LeaderOpinionBO leadersOpinion) {
 		this.leadersOpinion = leadersOpinion;
 	}
 	

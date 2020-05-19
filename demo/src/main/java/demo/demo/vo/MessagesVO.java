@@ -12,14 +12,19 @@ public class MessagesVO implements ViewObject {
 	/*
 	 * 自己的申请
 	 */
-	private List<ApplicationBO> applicationResult = new ArrayList<ApplicationBO>();
+	private List<ApplicationBO> applications= new ArrayList<ApplicationBO>();
 	
-	public MessagesVO(List<ApplicationBO> applicationResult ) {
-		this.applicationResult = applicationResult;
+	public MessagesVO() {}
+	public MessagesVO(List<ApplicationBO> applications) {
+		this.applications = applications;
 	}
 	
-	public List<ApplicationBO> getApplicationResult() {
-		return this.applicationResult;
+	public List<ApplicationBO> getApplications() {
+		return this.applications;
+	}
+	
+	public void setApplicaitons(List<ApplicationBO> applications) {
+		this.applications = applications;
 	}
 
 }

@@ -4,6 +4,12 @@ public class OverTime {
     private int userId;
     private String date;
 
+    public OverTime(){}
+    public OverTime(int userId, String date){
+        this.userId = userId;
+        this.date = date;
+    }
+
     public int getUserId(){
         return this.userId;
     }

@@ -19,7 +19,12 @@ public class HolidayBalanceVO implements ViewObject {
 	private int homeLeave;
 	
 	public HolidayBalanceVO() {}
-
+	public HolidayBalanceVO(int[] balances) {
+		annualLeave = balances[0];
+		maternityLeave = balances[1];
+		homeLeave = balances[2];
+	}
+	
 	public int getAnnualLeave() {
 		return annualLeave;
 	}

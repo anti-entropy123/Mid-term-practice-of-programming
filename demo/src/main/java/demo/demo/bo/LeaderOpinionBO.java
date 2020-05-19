@@ -10,6 +10,7 @@ public class LeaderOpinionBO implements BusinessObject {
 	private String result;
 	private String opinion;
 	
+	public LeaderOpinionBO() {}
 	public LeaderOpinionBO(
 							String title, String name, 
 							String result, String opinion

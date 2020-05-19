@@ -9,9 +9,9 @@ import demo.demo.entity.TestDO;
 @Service
 public class TestService {
     @Autowired
-    private TestDao TestDao;
+    private TestDao testDao;
 
     public TestDO getDo(){
-        return TestDao.queryDO();
+        return new TestDO();
     }
 }

@@ -9,12 +9,17 @@ public class UserDataVO implements ViewObject {
 	
 	private UserDataBO data;
 	
+	public UserDataVO() {}
 	public UserDataVO(UserDataBO data) {
 		this.data = data;
 	}
 
 	public UserDataBO getData() {
 		return data;
+	}
+	
+	public void setData(UserDataBO data) {
+		this.data = data;
 	}
 	
 }

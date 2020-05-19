@@ -7,9 +7,15 @@ public class OtherMemberStatusVO implements ViewObject {
 	
 	private int id;
 	private String name;
+	private String title = null;
 	private String status;
 	
 	public OtherMemberStatusVO() {}
+	public OtherMemberStatusVO(int id, String name, String status) {
+		this.id = id;
+		this.name = name;
+		this.status = status;
+	}
 
 	public int getId() {
 		return id;
