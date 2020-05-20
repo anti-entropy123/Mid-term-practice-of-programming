@@ -8,6 +8,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,7 +49,7 @@ import demo.demo.vo.UserListVO;
 
 @RestController
 public class AttendanceJsonController {
-	
+
 	/*
 	 * 用户信息处理service
 	 */
@@ -85,16 +86,19 @@ public class AttendanceJsonController {
 	@Autowired
 	private RemedyService remedyService;
 	
+	
 	/*
 	 * 用户登录
 	 * done1
 	 */
+	/*
 	@PostMapping("/api/user/")
 	void logIn(ServletResponse response,@RequestBody LogInfo logInfo) {
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
 		Cookie cookie = new Cookie("token", userService.logIn(logInfo));
 		httpResponse.addCookie(cookie);
 	}
+	*/
 	
 //	/*
 //	 * 行政部上传Excel文件，登记打卡记录
@@ -107,6 +111,7 @@ public class AttendanceJsonController {
 	 * 加班登记
 	 * done1
 	 */
+	@PreAuthorize("hasRole('普通员工')")
 	@PostMapping("/api/record/overtime")
 	void overtimeRecord(@RequestBody OvertimeInfo overtimeInfo) {
 		overtimeService.addOvertimeRecord(overtimeInfo);
@@ -117,6 +122,7 @@ public class AttendanceJsonController {
 	 * done1
 	 * waiting //没有完成修改剩余假期时间 和 添加通知
 	 */
+	@PreAuthorize("hasRole('普通员工')")
 	@PostMapping("/api/application/leave")
 	void leaveApplication(@RequestBody LeaveInfo leaveInfo) {
 		leaveService.addLeaveApplication(leaveInfo);
@@ -127,6 +133,7 @@ public class AttendanceJsonController {
 	 * done1
 	 * waiting // 没有完成添加通知
 	 */
+	@PreAuthorize("hasRole('普通员工')")
 	@PostMapping("/api/application/out")
 	void outApplication(@RequestBody OutInfo outInfo) {
 		outService.addOutApplication(outInfo);
@@ -136,6 +143,7 @@ public class AttendanceJsonController {
 	 * 补签申请
 	 * next version
 	 */
+	@PreAuthorize("hasRole('普通员工')")
 	@PostMapping("/api/application/remedy")
 	void remedyApplication(@RequestBody RemedyInfo remedyInfo) {
 		remedyService.addRemedyApplication(remedyInfo);
@@ -146,6 +154,7 @@ public class AttendanceJsonController {
 	 * done1
 	 * waiting //没有完成修改剩余假期时间 和 添加通知
 	 */
+	@PreAuthorize("hasRole('普通员工')")
 	@PostMapping("/api/application/mod/leave")
 	void updateLeaveApplication(@RequestBody ModifyLeaveInfo modifyLeaveInfo) {
 		leaveService.modifyLeaveApplication(modifyLeaveInfo);
@@ -156,6 +165,7 @@ public class AttendanceJsonController {
 	 * done1
 	 * waiting // 没有完成添加通知
 	 */
+	@PreAuthorize("hasRole('普通员工')")
 	@PostMapping("/api/application/mod/out")
 	void updateOutApplication(@RequestBody ModifyOutInfo modifyOutInfo) {
 		outService.modifyOutApplication(modifyOutInfo);
@@ -165,6 +175,7 @@ public class AttendanceJsonController {
 	 * 修改补签申请
 	 * next version
 	 */
+	@PreAuthorize("hasRole('普通员工')")
 	@PostMapping("/api/application/mod/remedy")
 	void updateRemedyApplication(@RequestBody ModifyRemedyInfo modifyRemedyInfo) {
 		remedyService.modifyRemedyApplication(modifyRemedyInfo);
@@ -174,6 +185,7 @@ public class AttendanceJsonController {
 	 * 查看个人考勤记录
 	 * done1
 	 */
+	@PreAuthorize("hasRole('普通员工')")
 	@GetMapping("/api/record")
 	PersonRecordVO getRecords(@RequestBody IdInfo id) {
 		return new PersonRecordVO(recordService.getRecordsById(id.getId()));
@@ -183,6 +195,7 @@ public class AttendanceJsonController {
 	 * 查看个人状态
 	 * done1
 	 */
+	@PreAuthorize("hasRole('普通员工')")
 	@GetMapping("/api/user/status")
 	CurrentStatusVO getStatus(@RequestBody IdInfo id) {
 		String status = userService.getStatusById(id.getId());//String
@@ -193,6 +206,7 @@ public class AttendanceJsonController {
 	 * 查看个人假期剩余情况
 	 * done1
 	 */
+	@PreAuthorize("hasRole('普通员工')")
 	@GetMapping("/api/user/Holidaybalance")
 	HolidayBalanceVO getHolidayBalance(@RequestBody IdInfo id) {
 		return new HolidayBalanceVO(leaveService.getHolidayBalanceById(id.getId()));
@@ -202,6 +216,7 @@ public class AttendanceJsonController {
 	 * 查看全体员工列表
 	 * done1
 	 */
+	@PreAuthorize("hasRole('普通员工')")
 	@GetMapping("/api/user/employees")
 	UserListVO getMembersList(@RequestBody IdInfo id) {
 		return new UserListVO(userService.getMembers());
@@ -211,6 +226,7 @@ public class AttendanceJsonController {
 	 * 查看其他员工状态
 	 * done1
 	 */
+	@PreAuthorize("hasRole('普通员工')")
 	@GetMapping("/api/user/employees/{otherUserId}")
 	OtherMemberStatusVO getOthersStatus(@RequestBody IdInfo id, @PathVariable int otherUserId) {
 		int userId = otherUserId;
@@ -224,6 +240,7 @@ public class AttendanceJsonController {
 	 * 某个人的全部数据
 	 * done1
 	 */
+	@PreAuthorize("hasRole('行政部部员工')")
 	@GetMapping("/api/administration-department/after-process/data")
 	UserDataVO getUserDataById(@RequestBody IdInfo id) {
 		String userName = userService.getNameById(id.getId());
@@ -240,10 +257,16 @@ public class AttendanceJsonController {
 		return new UserDataVO(data);
 	}
 	
+	// TODO
+	// * @PostMapping("/api/administration-department/after-process/data")
+	
+
+
 	/*
 	 * 获取自己的申请信息
 	 * done1
 	 */
+	@PreAuthorize("hasRole('普通员工')")
 	@GetMapping("/api/user/messages/application/")
 	MessagesVO getApplications(@RequestParam(name = "type") int type, @RequestBody IdInfo id) {
 		if (type == 0) {
@@ -257,6 +280,7 @@ public class AttendanceJsonController {
 	 * 获取自己要处理的信息
 	 * done1
 	 */
+	@PreAuthorize("hasRole('项目经理')")
 	@GetMapping("/api/user/messages/process-application/")
 	MessagesVO getProcess(@RequestParam(name = "type") int type, @RequestBody IdInfo id) {
 		if (type == 0) {
@@ -271,6 +295,7 @@ public class AttendanceJsonController {
 	 * done1
 	 * waiting 没有完成添加通知
 	 */
+	@PreAuthorize("hasRole('项目经理')")
 	@PostMapping("/api/application/process-command")
 	void processApplication(@RequestBody ProcessInfo processInfo) {
 		if (!leaveService.addOpinion(processInfo)) {
@@ -282,6 +307,7 @@ public class AttendanceJsonController {
 	 * 查看其他管理者的审批情况
 	 * done1
 	 */
+	@PreAuthorize("hasRole('副总经理')")
 	@GetMapping("/api/manager/approval-results")
 	ApplicationForBossVO getApplicationResults(@RequestBody IdInfo id) {
 		return new ApplicationForBossVO(leaveService.getProcessApplicationResultsById(id.getId()));
@@ -290,6 +316,7 @@ public class AttendanceJsonController {
 	/*
 	 * 查看全体请假员工
 	 */
+	@PreAuthorize("hasRole('副总经理')")
 	@GetMapping("/api/manager/all/leaving-members")
 	LeaveMembersVO getLeaveMembers(@RequestBody IdInfo id) {
 		LeaveMembersVO lmv = new LeaveMembersVO(leaveService.getLeaveMembers());
@@ -299,6 +326,7 @@ public class AttendanceJsonController {
 	/*
 	 * 查看全体外出员工
 	 */
+	@PreAuthorize("hasRole('副总经理')")
 	@GetMapping("/api/manager/all/outing-members")
 	OutMembersVO getOutMembers(@RequestBody IdInfo id) {
 		OutMembersVO omv = new OutMembersVO(outService.getOutMembers());
@@ -308,6 +336,7 @@ public class AttendanceJsonController {
 	/*
 	 * 查看全体加班员工
 	 */
+	@PreAuthorize("hasRole('副总经理')")
 	@GetMapping("/api/manager/all/overtime-members")
 	OverTimeMembersVO getOvertimeMembers(@RequestBody IdInfo id) {
 		OverTimeMembersVO otv = new OverTimeMembersVO(overtimeService.getOvertimeMembers());

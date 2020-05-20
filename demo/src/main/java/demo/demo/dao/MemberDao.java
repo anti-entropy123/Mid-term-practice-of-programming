@@ -57,7 +57,18 @@ public class MemberDao {
         返回:   无
     */
     public void insertMember(Member m){
-        String sql = "insert " + memberTable + " (id, password, name, title) values(?,?,?,?)";
+        String sql = "insert " + memberTable + " (password, name, title) values(?,?,?)";
         jdbcTemplate.update(sql, m.getId(), m.getPassword(), m.getName(), m.getTitle());
+    }
+
+    /** 
+     *  作用:   通过用户名查询用户
+     *  输入:   用户名(员工名称)
+     *  返回:   Member 实例    
+     *  
+    */
+    public Member qureyMemberByName(String name){
+        String sql = "select * from " + memberTable + " where name = ?";
+        return jdbcTemplate.queryForObject(sql, new MemberRowMapper(), name);
     }
 }
