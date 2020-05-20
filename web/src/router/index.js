@@ -4,7 +4,7 @@ import home from '../controllers/Home.vue'
 import user from '../controllers/User.vue'
 import work from '../controllers/Work.vue'
 import apply from '../controllers/Apply.vue'
-
+import login from '../controllers/Login.vue'
 Vue.use(Router)
 window.Bus = new Vue()
 
@@ -31,6 +31,11 @@ export default new Router({
       path: '/apply',
       component: apply,
       meta: { title: '我的申请' }
+    },
+    {
+      path: '/login',
+      component: login,
+      meta: { title: '登陆' }
     }
   ]
 })
