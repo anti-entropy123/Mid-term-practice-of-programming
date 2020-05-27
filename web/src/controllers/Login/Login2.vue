@@ -37,6 +37,17 @@
               @keydown.enter="Login"
               round>登陆</el-button>
           </div>
+        <div class="footer">
+          <div class="subnav">
+            |  <a href="#">组长</a>:
+            <a href="http://tjuyjn.top/">尤克里里</a> |
+            <a href="#">组员</a> :
+            <a href="https://r1895.github.io/">任帅</a>
+            <a href="#">满可爱</a>
+            <a href="#">鲍富</a> |
+          </div>
+          <p>Copyright @2020 KaoQin. | 码出世界出品</p>
+        </div>
       </div>
     </div>
 </template>
@@ -72,7 +83,9 @@
 .container {
   display: flex;
   align-items: center;
+  flex-flow: column;
   justify-content: center;
+  background-color: rgba(109, 206, 231, 0.4);
 }
 .desc{
   margin-top:25px;
@@ -82,5 +95,33 @@
 .input{
   margin-bottom:20px;
 }
+.footer {
+  height: 200px;
 
+  overflow: hidden;
+}
+
+.subnav {
+  text-align: center;
+  margin-top: 75px;
+  color: #f0f1f1;
+}
+
+.subnav a {
+  color: #f0f1f1;
+  text-decoration: none;
+  padding: 0 5px;
+  font-size: 14px;
+}
+
+.subnav a:hover {
+  color: #2288f6;
+  text-decoration: underline;
+}
+
+.footer p {
+  color: #888888;
+  text-align: center;
+  margin-top: 30px;
+}
 </style>
