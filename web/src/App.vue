@@ -49,7 +49,8 @@ div
       router-link(to="/user", exact, tag="li", class="header-item") 个人信息
       router-link(to="/apply", exact, tag="li", class="header-item") 我的申请
       router-link(to="/work", exact, tag="li", class="header-item") 工作业务
-      el-button(type="text", @click="userLogin()") 登录
+      router-link(to="/login", exact, tag="button", class="header-item") 登陆
+      el-button(type="text", @click="userLogin") 登录
   .main-container
     router-view(v-if="isRouterAlive")
 </template>
@@ -68,7 +69,9 @@ export default {
 
   },
   methods: {
-
+    userLogin(){
+      this.$router.push('/login')
+    }
   }
 }
 </script>
