@@ -10,6 +10,7 @@ import demo.demo.entity.Member;
 
 public class MemberDaoTest extends TestBase{
     @Autowired MemberDao memberDao;
+
     @Test
     public void testInsertMember(){
         Member m = new Member();

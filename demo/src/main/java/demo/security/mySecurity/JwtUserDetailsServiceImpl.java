@@ -1,4 +1,4 @@
-package demo.demo.service;
+package demo.security.mySecurity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import demo.demo.security.JwtUser;
+import demo.security.mySecurity.JwtUser;
 import demo.demo.dao.MemberDao;
 import demo.demo.entity.Member;
 

@@ -49,7 +49,7 @@ import demo.demo.vo.UserListVO;
 
 @RestController
 public class AttendanceJsonController {
-
+	
 	/*
 	 * 用户信息处理service
 	 */
@@ -86,19 +86,17 @@ public class AttendanceJsonController {
 	@Autowired
 	private RemedyService remedyService;
 	
-	
-	/*
-	 * 用户登录
-	 * done1
-	 */
-	/*
-	@PostMapping("/api/user/")
-	void logIn(ServletResponse response,@RequestBody LogInfo logInfo) {
-		HttpServletResponse httpResponse = (HttpServletResponse) response;
-		Cookie cookie = new Cookie("token", userService.logIn(logInfo));
-		httpResponse.addCookie(cookie);
-	}
-	*/
+	// ! 登录方法被 demo.demo.security.AuthController 中的 Login 方法取代
+	// /*
+	//  * 用户登录
+	//  * done1
+	//  */
+	// @PostMapping("/api/user/")
+	// void logIn(ServletResponse response,@RequestBody LogInfo logInfo) {
+	// 	HttpServletResponse httpResponse = (HttpServletResponse) response;
+	// 	Cookie cookie = new Cookie("token", userService.logIn(logInfo));
+	// 	httpResponse.addCookie(cookie);
+	// }
 	
 //	/*
 //	 * 行政部上传Excel文件，登记打卡记录
@@ -111,6 +109,7 @@ public class AttendanceJsonController {
 	 * 加班登记
 	 * done1
 	 */
+
 	@PreAuthorize("hasRole('普通员工')")
 	@PostMapping("/api/record/overtime")
 	void overtimeRecord(@RequestBody OvertimeInfo overtimeInfo) {
@@ -240,7 +239,7 @@ public class AttendanceJsonController {
 	 * 某个人的全部数据
 	 * done1
 	 */
-	@PreAuthorize("hasRole('行政部部员工')")
+	// TODO
 	@GetMapping("/api/administration-department/after-process/data")
 	UserDataVO getUserDataById(@RequestBody IdInfo id) {
 		String userName = userService.getNameById(id.getId());
@@ -257,11 +256,6 @@ public class AttendanceJsonController {
 		return new UserDataVO(data);
 	}
 	
-	// TODO
-	// * @PostMapping("/api/administration-department/after-process/data")
-	
-
-
 	/*
 	 * 获取自己的申请信息
 	 * done1

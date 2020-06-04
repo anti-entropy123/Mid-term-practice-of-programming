@@ -12,14 +12,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import cn.org.faster.framework.auth.AuthService;
 import demo.demo.dao.MemberDao;
 import demo.demo.entity.Member;
-import demo.demo.security.JwtTokenUtil;
-import demo.demo.security.JwtUser;
+import demo.security.JwtTokenUtil;
+import demo.security.mySecurity.JwtUser;
 
 @Service
-public class AuthServiceImpl {
+public class AuthServiceImpl implements AuthService{
     private AuthenticationManager authenticationManager;
     private UserDetailsService userDetailsService;
     private JwtTokenUtil jwtTokenUtil;
@@ -27,7 +26,6 @@ public class AuthServiceImpl {
 
     @Value("{Jwt.tokenHead}")
     private String tokenHead;
-
 
     @Autowired
     public AuthServiceImpl(
@@ -41,17 +39,19 @@ public class AuthServiceImpl {
         this.memberDao = memberDao;
     }
     
+    @Override
     public String login(int userId, String password) {
         UsernamePasswordAuthenticationToken upToken = new UsernamePasswordAuthenticationToken(userId, password);
         final Authentication authentication = authenticationManager.authenticate(upToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(String.valueOf(userId));
-        final String token = jwtTokenUtil.generateToken(userDetails);
+        final String token = jwtTokenUtil.generateToken((JwtUser)userDetails);
         return token;
     }
 
 
+    @Override
     public void register(Member member){
         final int userId = member.getId();
         if(memberDao.qureyUser(userId) != null){
@@ -66,6 +66,7 @@ public class AuthServiceImpl {
         }
     }
 
+    @Override
     public String refresh(String oldToken) {
         final String token = oldToken.substring(tokenHead.length());
         // String username = jwtTokenUtil.getUsernameFromToken(token);

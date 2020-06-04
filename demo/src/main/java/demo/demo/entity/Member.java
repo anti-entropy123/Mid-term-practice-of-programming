@@ -1,7 +1,5 @@
 package demo.demo.entity;
 
-import org.springframework.lang.Nullable;
-
 public class Member {
     private int id;
     private String name;
@@ -9,7 +7,7 @@ public class Member {
     private String title;
     
     public Member(){}
-    public Member(@Nullable int userId, String name, String password, String title) {
+    public Member(int userId, String name, String password, String title){
         this.id = userId;
         this.name = name;
         this.password = password;

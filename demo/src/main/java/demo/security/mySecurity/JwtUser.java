@@ -1,4 +1,4 @@
-package demo.demo.security;
+package demo.security.mySecurity;
 
 import java.util.Collection;
 import java.util.Date;

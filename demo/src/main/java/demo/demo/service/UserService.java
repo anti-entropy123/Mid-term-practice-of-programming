@@ -60,7 +60,6 @@ public class UserService {
 			tMember.setTitle(member.getTitle());
 			minMembers.add(tMember);
 		}
-		
 		return minMembers;
 	}
 

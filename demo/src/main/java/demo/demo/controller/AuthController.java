@@ -1,23 +1,18 @@
 package demo.demo.controller;
 
-import demo.demo.security.JwtAuthenticationResponse;
-import demo.demo.service.AuthServiceImpl;
-
-import com.nimbusds.oauth2.sdk.Response;
+import demo.security.mySecurity.JwtAuthenticationRequest;
+import demo.security.mySecurity.JwtAuthenticationResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import cn.hutool.crypto.digest.BCrypt;
-import demo.demo.dao.MemberDao;
 import demo.demo.entity.Member;
-import demo.demo.security.JwtAuthenticationRequest;
+import demo.demo.service.AuthServiceImpl;
 
 
 @RestController
@@ -38,7 +33,7 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody JwtAuthenticationRequest request){
         final String username = request.getUsername();
         final String rawPassword = request.getPassword();
-        authService.register(new Member(0, username, rawPassword, ""));
+        authService.register(new Member(0, username, rawPassword, "普通员工"));
         return ResponseEntity.ok().build();
     }
 }
