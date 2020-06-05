@@ -7,57 +7,65 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import demo.demo.bo.ApplicationBO;
-import demo.demo.bo.ApplicationForBossBO;
 import demo.demo.bo.LeaderOpinionBO;
 import demo.demo.bo.MOutApplicationBO;
 import demo.demo.bo.MemberBO;
 import demo.demo.bo.MinOutApplicationBO;
 import demo.demo.dao.ApplicationDao;
-import demo.demo.dao.MemberDao;
 import demo.demo.dao.MessageDao;
 import demo.demo.entity.Application;
 import demo.demo.entity.LeaderOpinion;
-import demo.demo.entity.LeaveApplication;
 import demo.demo.entity.Member;
 import demo.demo.entity.Message;
 import demo.demo.entity.OutApplication;
 import demo.demo.requestbody.ModifyOutInfo;
 import demo.demo.requestbody.OutInfo;
 import demo.demo.requestbody.ProcessInfo;
+import demo.utils.ApplicationIdUtil;
+import demo.utils.DateUtil;
 
 @Service
 public class OutService {
 	
 	@Autowired
 	private ApplicationDao applicationDao;
-	@Autowired
-	private MemberDao memberDao;
+//	@Autowired
+//	private MemberDao memberDao;
 	@Autowired
 	private MessageDao messageDao;
+	@Autowired
+	private UserService userService;
 	
 	/*
 	 * 添加外出申请
 	 */
 	public void addOutApplication(OutInfo outInfo) {
-		ApplicationIdService applicationIdService = ApplicationIdService.getInstance();
+		ApplicationIdUtil applicationIdService = ApplicationIdUtil.getInstance();
 		OutApplication application = new OutApplication();
 		application.setUserId(outInfo.getId());
-		application.setStartTime(outInfo.getStartTime());
-		application.setEndTime(outInfo.getEndTime());
+		application.setStartTime(new DateUtil().getDateFromLong(outInfo.getStartTime()));
+		application.setEndTime(new DateUtil().getDateFromLong(outInfo.getEndTime()));
 		application.setReason(outInfo.getReason());
 		application.setApplicationId(applicationIdService.getId());
 		applicationDao.insertApplication(application);
+		addMessageToDepartmentManager(outInfo.getId());
 	}
+	
+	
 
 	/*
 	 * 修改外出申请
 	 * 加判断
 	 */
 	public void modifyOutApplication(ModifyOutInfo modifyOutInfo) {
+		List<LeaderOpinion> opinion = applicationDao.qureyLeaderOpinionByAppId(modifyOutInfo.getOutId());
+		if (opinion == null) {
+			return;
+		}
 		OutApplication application = new OutApplication();
 		application.setUserId(modifyOutInfo.getId());
-		application.setStartTime(modifyOutInfo.getStartTime());
-		application.setEndTime(modifyOutInfo.getEndTime());
+		application.setStartTime(new DateUtil().getDateFromLong(modifyOutInfo.getStartTime()));
+		application.setEndTime(new DateUtil().getDateFromLong(modifyOutInfo.getEndTime()));
 		application.setReason(modifyOutInfo.getReason());
 		application.setApplicationId(modifyOutInfo.getOutId());
 		applicationDao.updateApplication(application);
@@ -84,7 +92,7 @@ public class OutService {
 	 * 获得该id的重量级外出申请
 	 */
 	public List<ApplicationBO> getApplicationResultById(int id) {
-		String name = memberDao.qureyUser(id).getName();
+		String name = userService.getNameById(id);
 		List<Application> applications = applicationDao.qureyApplicationById(id);
 		List<ApplicationBO> mApplications = new ArrayList<ApplicationBO>();
 		for (Application application: applications) {
@@ -105,10 +113,9 @@ public class OutService {
 
 	/*
 	 * 获得该id的重量级需要处理申请
-	 * doing
 	 */
 	public List<ApplicationBO> getNeedToProcessById(int id) {
-		String name = memberDao.qureyUser(id).getName();
+		String name = userService.getNameById(id);
 		List<Message> messages = messageDao.qureyPersonMessage(id);
 		List<ApplicationBO> mApplications = new ArrayList<ApplicationBO>();
 		for (Message message: messages) {
@@ -116,12 +123,13 @@ public class OutService {
 			if (application instanceof OutApplication) {
 				MOutApplicationBO mApplication = new MOutApplicationBO();
 				mApplication.setApplicationId(application.getApplicationId());
-				mApplication.setMemberId(id);
-				mApplication.setName(name);
+				mApplication.setMemberId(application.getUserId());
+				mApplication.setName(userService.getNameById(application.getUserId()));
 				mApplication.setStartTime(application.getStartTime());
 				mApplication.setEndTime(application.getEndTime());
 				mApplication.setReason(application.getReason());
 				getLeaderOpinion(mApplication);
+				mApplication.setAuthority();
 				mApplications.add(mApplication);
 			}
 		}
@@ -136,6 +144,12 @@ public class OutService {
 				new LeaderOpinion(processInfo.getId(), processInfo.getApplicationId(),
 								  processInfo.getResult(), processInfo.getOpinion())
 			);
+		String title = userService.getTitleById(processInfo.getId());
+		if (title.equals("部门经理")) {
+			addMessageToDeputyGeneralManager(processInfo.getApplicationId());
+		} else if (title.equals("副总经理")) {
+			addMessageToGeneralManager(processInfo.getApplicationId());
+		}
 	}
 	
 	/*
@@ -143,16 +157,15 @@ public class OutService {
 	 */
 	public List<MemberBO> getOutMembers() {
 		List<MemberBO> members = new ArrayList<MemberBO>();
-		java.util.Date t0 = new java.util.Date();
-		java.sql.Date t1 = new java.sql.Date(t0.getTime());
-		String date = t1.toString();
+		java.util.Date t = new java.util.Date();
+		String date = new DateUtil().getDateFromDate(t);
 		List<Application> applications = applicationDao.qureyAllApplication();
 		for (Application application: applications) {
 			if ((application instanceof OutApplication) &&
 				(application.getStartTime().compareTo(date) <= 0) &&
 				(application.getEndTime().compareTo(date) >= 0)) {
 				int userId = application.getUserId();
-				Member member = memberDao.qureyUser(userId);
+				Member member = userService.getMembersById(userId);
 				MemberBO memberBO = new MemberBO();
 				memberBO.setId(userId);
 				memberBO.setName(member.getName());
@@ -170,13 +183,38 @@ public class OutService {
 			LeaderOpinionBO lob = new LeaderOpinionBO();
 			lob.setResult(opinion.getResult());
 			lob.setOpinion(opinion.getOpinion());
-			int leaderId = opinion.getApplicationId();
-			Member member = memberDao.qureyUser(leaderId);
+			int leaderId = opinion.getLeaderId();
+			Member member = userService.getMembersById(leaderId);
 			lob.setTitle(member.getTitle());
 			lob.setName(member.getName());
 			results.add(lob);
 		}
 		application.setLeadersOpinion(results);
+	}
+	
+	
+	private void addMessageToDepartmentManager(int applicationId) {
+		List<Integer> ids = userService.getDepartmentManagerId();
+		addMessage(ids, applicationId);
+	}
+	
+	private void addMessageToGeneralManager(int applicationId) {
+		List<Integer> ids = userService.getGeneralManagerId();
+		addMessage(ids, applicationId);
+	}
+	
+	private void addMessageToDeputyGeneralManager(int applicationId) {
+		List<Integer> ids = userService.getDeputyGeneralManagerId();
+		addMessage(ids, applicationId);
+	}
+	
+	private void addMessage(List<Integer> ids, int applicationId) {
+		for (Integer id: ids) {
+			Message m = new Message();
+			m.setApplicationId(applicationId);
+			m.setUserId(id);
+			messageDao.insertMessage(m);
+		}
 	}
 	
 }

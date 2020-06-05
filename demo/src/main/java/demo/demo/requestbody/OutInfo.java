@@ -3,8 +3,8 @@ package demo.demo.requestbody;
 public class OutInfo {
 	
 	private int id;
-	private String startTime;
-	private String endTime;
+	private long startTime;
+	private long endTime;
 	private String reason;
 	
 	public OutInfo() {
@@ -19,19 +19,19 @@ public class OutInfo {
 		this.id = id;
 	}
 
-	public String getStartTime() {
+	public long getStartTime() {
 		return startTime;
 	}
 
-	public void setStartTime(String startTime) {
+	public void setStartTime(long startTime) {
 		this.startTime = startTime;
 	}
 
-	public String getEndTime() {
+	public long getEndTime() {
 		return endTime;
 	}
 
-	public void setEndTime(String endTime) {
+	public void setEndTime(long endTime) {
 		this.endTime = endTime;
 	}
 

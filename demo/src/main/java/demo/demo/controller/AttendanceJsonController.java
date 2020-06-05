@@ -8,13 +8,16 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import demo.demo.bo.MinLeaveApplicationBO;
 import demo.demo.bo.MinOutApplicationBO;
@@ -39,6 +42,7 @@ import demo.demo.vo.ApplicationForBossVO;
 import demo.demo.vo.CurrentStatusVO;
 import demo.demo.vo.HolidayBalanceVO;
 import demo.demo.vo.LeaveMembersVO;
+import demo.demo.vo.LoginStatusVO;
 import demo.demo.vo.MessagesVO;
 import demo.demo.vo.OtherMemberStatusVO;
 import demo.demo.vo.OutMembersVO;
@@ -46,6 +50,7 @@ import demo.demo.vo.OverTimeMembersVO;
 import demo.demo.vo.PersonRecordVO;
 import demo.demo.vo.UserDataVO;
 import demo.demo.vo.UserListVO;
+import demo.utils.JwtTokenUtil;
 
 @RestController
 public class AttendanceJsonController {
@@ -85,12 +90,12 @@ public class AttendanceJsonController {
 	 */
 	@Autowired
 	private RemedyService remedyService;
-	
-	// ! 登录方法被 demo.demo.security.AuthController 中的 Login 方法取代
-	// /*
-	//  * 用户登录
-	//  * done1
-	//  */
+	/*
+	 * 用于解码token
+	 */
+	@Autowired 
+	private JwtTokenUtil jwtTokenUtil;
+	// ! 登录方法被 demo.demo.controller.AuthController 中的 Login 方法取代
 	// @PostMapping("/api/user/")
 	// void logIn(ServletResponse response,@RequestBody LogInfo logInfo) {
 	// 	HttpServletResponse httpResponse = (HttpServletResponse) response;
@@ -98,12 +103,29 @@ public class AttendanceJsonController {
 	// 	httpResponse.addCookie(cookie);
 	// }
 	
-//	/*
-//	 * 行政部上传Excel文件，登记打卡记录
-//	 */
-//	void signIn(@RequestBody ) {
-//		
-//	}
+	/*
+	 * 通过token获取用户的 id 和 username 等数据
+	 * 6.5 日新增 by yjn
+	 * 
+	 */ 
+	@PreAuthorize("hasRole('普通员工')")
+	@GetMapping("/api/user")
+	LoginStatusVO loginStatus(@RequestHeader HttpHeaders headers){
+		String token = headers.get("Authorization").get(0).substring("Bearer ".length());
+		int userId = Integer.valueOf(jwtTokenUtil.getUsernameFromToken(token));
+		return new LoginStatusVO(userService.getLoginSatus(userId));
+	}
+
+	/*
+	 * 行政部上传Excel文件，登记打卡记录
+	 * done1
+	 * 5.26测试通过
+	 */
+	@PreAuthorize("hasRole('行政部员工')")
+	@PostMapping("/api/administration-department/after-process/data")
+	void signIn(@RequestParam("file") MultipartFile file) {
+		recordService.saveRecords(file);
+	}
 	
 	/*
 	 * 加班登记

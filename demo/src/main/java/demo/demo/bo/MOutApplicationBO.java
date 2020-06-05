@@ -8,6 +8,7 @@ import java.util.List;
 public class MOutApplicationBO extends ApplicationBO {
 
 	private final String type = "out";
+	private int authority = 0;
 	private List<LeaderOpinionBO> leadersOpinion = new ArrayList<LeaderOpinionBO>();
 	
 	public MOutApplicationBO() {
@@ -28,6 +29,18 @@ public class MOutApplicationBO extends ApplicationBO {
 	
 	public void addLeaderOpinion(LeaderOpinionBO leaderOpinion) {
 		this.leadersOpinion.add(leaderOpinion);
+	}
+
+	public void setAuthority() {
+		authority = leadersOpinion.size();
+	}
+	
+	public int getAuthority() {
+		return authority;
+	}
+
+	public void setAuthority(int authority) {
+		this.authority = authority;
 	}
 	
 }

@@ -3,7 +3,7 @@ package demo.demo.requestbody;
 public class OvertimeInfo {
 	
 	private int id;
-	private String datetime;
+	private long datetime;
 	
 	public OvertimeInfo() {
 		
@@ -17,11 +17,11 @@ public class OvertimeInfo {
 		this.id = id;
 	}
 
-	public String getDatetime() {
+	public long getDatetime() {
 		return datetime;
 	}
 
-	public void setDatetime(String datetime) {
+	public void setDatetime(long datetime) {
 		this.datetime = datetime;
 	}
 

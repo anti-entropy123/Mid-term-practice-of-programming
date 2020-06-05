@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import demo.demo.dao.MemberDao;
 import demo.demo.entity.Member;
-import demo.security.JwtTokenUtil;
+import demo.utils.JwtTokenUtil;
 import demo.security.mySecurity.JwtUser;
 
 @Service

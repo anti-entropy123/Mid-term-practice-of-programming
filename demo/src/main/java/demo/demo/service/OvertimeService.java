@@ -13,6 +13,7 @@ import demo.demo.dao.OverTimeDao;
 import demo.demo.entity.Member;
 import demo.demo.entity.OverTime;
 import demo.demo.requestbody.OvertimeInfo;
+import demo.utils.DateUtil;
 
 @Service
 public class OvertimeService {
@@ -27,7 +28,7 @@ public class OvertimeService {
 	 */
 	public void addOvertimeRecord(OvertimeInfo overtimeInfo) {
 		overTimeDao.insertOvertimeRecord(
-					new OverTime(overtimeInfo.getId(), overtimeInfo.getDatetime())
+					new OverTime(overtimeInfo.getId(), new DateUtil().getDateFromLong(overtimeInfo.getDatetime()))
 				);
 	}
 
@@ -44,9 +45,8 @@ public class OvertimeService {
 	 */
 	public List<MemberBO> getOvertimeMembers() {
 		List<MemberBO> memberBOs = new ArrayList<MemberBO>();
-		java.util.Date t0 = new java.util.Date();
-		java.sql.Date t1 = new java.sql.Date(t0.getTime());
-		String date = t1.toString();
+		java.util.Date t = new java.util.Date();
+		String date = new DateUtil().getDateFromDate(t);
 		List<OverTime> overTimes = overTimeDao.queryOvertimeByDate(date);
 		for (OverTime overTime: overTimes) {
 			int id = overTime.getUserId();

@@ -1,6 +1,7 @@
 package demo.demo.dao;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -24,11 +25,23 @@ public class MemberDao {
     */
     public Member qureyUser(int id){
         String sql = "select * from "+ memberTable + " where id = ?";
-        Member member = jdbcTemplate.queryForObject(sql, new MemberRowMapper(), id);
-
+        Member member = null;
+        try{
+            member = jdbcTemplate.queryForObject(sql, new MemberRowMapper(), id);
+        }catch(EmptyResultDataAccessException e){
+        }
         return member;
     } 
-
+    /* 
+        作用:   根据 id 返回 该id对应的 username.
+        输入:   用户id
+        返回:   该用户所有个人数据, 包括密码等
+    */
+    public String qureyUsernameById(int id){
+        String sql = "select name from "+ memberTable + " where id = ?";
+        Map<String, Object> name = jdbcTemplate.queryForMap(sql, id);
+        return (String)name.getOrDefault("name", "null");
+    }
     /* 
         作用:   根据 id 返回对应的 password 数据
         输入:   用户 id

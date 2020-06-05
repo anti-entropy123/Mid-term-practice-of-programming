@@ -1,6 +1,5 @@
 package demo.demo.service;
 
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +13,6 @@ import demo.demo.bo.MLeaveApplicationBO;
 import demo.demo.bo.MemberBO;
 import demo.demo.bo.MinLeaveApplicationBO;
 import demo.demo.dao.ApplicationDao;
-import demo.demo.dao.MemberDao;
 import demo.demo.dao.MessageDao;
 import demo.demo.entity.Application;
 import demo.demo.entity.HolidayBalance;
@@ -25,43 +23,75 @@ import demo.demo.entity.Message;
 import demo.demo.requestbody.LeaveInfo;
 import demo.demo.requestbody.ModifyLeaveInfo;
 import demo.demo.requestbody.ProcessInfo;
+import demo.utils.ApplicationIdUtil;
+import demo.utils.DateUtil;
 
 @Service
 public class LeaveService {
 	
 	@Autowired
 	private ApplicationDao applicationDao;
-	@Autowired
-	private MemberDao memberDao;
+//	@Autowired
+//	private MemberDao memberDao;
 	@Autowired
 	private MessageDao messageDao;
+	@Autowired
+	private UserService userService;
 
 	/*
 	 * 添加请假
 	 */
 	public void addLeaveApplication(LeaveInfo leaveInfo) {
-		ApplicationIdService applicationIdService = ApplicationIdService.getInstance();
+		ApplicationIdUtil applicationIdService = ApplicationIdUtil.getInstance();
 		LeaveApplication application = new LeaveApplication();
 		application.setUserId(leaveInfo.getId());
-		application.setStartTime(leaveInfo.getStartTime());
-		application.setEndTime(leaveInfo.getEndTime());
+		application.setStartTime(new DateUtil().getDateFromLong(leaveInfo.getStartTime()));
+		application.setEndTime(new DateUtil().getDateFromLong(leaveInfo.getEndTime()));
 		application.setType(leaveInfo.getType());
 		application.setReason(leaveInfo.getReason());
 		application.setApplicationId(applicationIdService.getId());
+		
+		int balance = getBalance(leaveInfo.getId(), leaveInfo.getType());
+		balance -= new DateUtil().getDays(leaveInfo.getEndTime(), leaveInfo.getStartTime());
+		HolidayBalance holiday = new HolidayBalance();
+		holiday.setBalance(balance);
+		holiday.setId(leaveInfo.getId());
+		holiday.setType(leaveInfo.getType());
+		applicationDao.updateHolidayBalance(holiday);
+		
 		applicationDao.insertApplication(application);
+		addMessageToDepartmentManager(leaveInfo.getId());
 	}
 
 	/*
 	 * 修改请假申请
 	 */
 	public void modifyLeaveApplication(ModifyLeaveInfo modifyLeaveInfo) {
+		List<LeaderOpinion> opinion = applicationDao.qureyLeaderOpinionByAppId(modifyLeaveInfo.getLeaveId());
+		if (opinion == null) {
+			return;
+		}
 		LeaveApplication application = new LeaveApplication();
 		application.setUserId(modifyLeaveInfo.getId());
-		application.setStartTime(modifyLeaveInfo.getStartTime());
-		application.setEndTime(modifyLeaveInfo.getEndTime());
+		application.setStartTime(new DateUtil().getDateFromLong(modifyLeaveInfo.getStartTime()));
+		application.setEndTime(new DateUtil().getDateFromLong(modifyLeaveInfo.getEndTime()));
 		application.setType(modifyLeaveInfo.getType());
 		application.setReason(modifyLeaveInfo.getReason());
 		application.setApplicationId(modifyLeaveInfo.getLeaveId());
+		
+		Application oldApplication = applicationDao.qureyApplicationByAppId(modifyLeaveInfo.getLeaveId());
+		int balance = getBalance(modifyLeaveInfo.getId(), modifyLeaveInfo.getType());
+		System.out.println(balance);
+		balance += new DateUtil().getDays(oldApplication.getEndTime(), oldApplication.getStartTime());
+		System.out.println(balance);
+		balance -= new DateUtil().getDays(modifyLeaveInfo.getEndTime(), modifyLeaveInfo.getStartTime());
+		System.out.println(balance);
+		HolidayBalance holiday = new HolidayBalance();
+		holiday.setBalance(balance);
+		holiday.setId(modifyLeaveInfo.getId());
+		holiday.setType(modifyLeaveInfo.getType());
+		applicationDao.updateHolidayBalance(holiday);
+		
 		applicationDao.updateApplication(application);
 	}
 
@@ -109,7 +139,7 @@ public class LeaveService {
 	 * MLeaveApplicationBO
 	 */
 	public List<ApplicationBO> getApplicationResultById(int id) {
-		String name = memberDao.qureyUser(id).getName();
+		String name = userService.getNameById(id);  
 		List<Application> applications = applicationDao.qureyApplicationById(id);
 		List<ApplicationBO> mApplications = new ArrayList<ApplicationBO>();
 		for (Application application: applications) {
@@ -120,7 +150,7 @@ public class LeaveService {
 				mApplication.setName(name);
 				mApplication.setStartTime(application.getStartTime());
 				mApplication.setEndTime(application.getEndTime());
-				mApplication.setType(((LeaveApplication) application).getType());
+				mApplication.setType(((LeaveApplication)application).getType());	
 				mApplication.setReason(application.getReason());
 				getLeaderOpinion(mApplication);
 				mApplications.add(mApplication);
@@ -134,8 +164,7 @@ public class LeaveService {
 	 *  MLeaveApplicationBO
 	 *  doing
 	 */
-	public List<ApplicationBO> getNeedToProcessById(int id) {
-		String name = memberDao.qureyUser(id).getName();
+	public List<ApplicationBO> getNeedToProcessById(int id) { 
 		List<Message> messages = messageDao.qureyPersonMessage(id);
 		List<ApplicationBO> mApplications = new ArrayList<ApplicationBO>();
 		for (Message message: messages) {
@@ -143,13 +172,14 @@ public class LeaveService {
 			if (application instanceof LeaveApplication) {
 				MLeaveApplicationBO mApplication = new MLeaveApplicationBO();
 				mApplication.setApplicationId(application.getApplicationId());
-				mApplication.setMemberId(id);
-				mApplication.setName(name);
+				mApplication.setMemberId(application.getUserId());
+				mApplication.setName(userService.getNameById(application.getUserId()));
 				mApplication.setStartTime(application.getStartTime());
 				mApplication.setEndTime(application.getEndTime());
 				mApplication.setType(((LeaveApplication) application).getType());
 				mApplication.setReason(application.getReason());
 				getLeaderOpinion(mApplication);
+				mApplication.setAuthority();
 				mApplications.add(mApplication);
 			}
 		}
@@ -166,6 +196,12 @@ public class LeaveService {
 						new LeaderOpinion(processInfo.getId(), processInfo.getApplicationId(),
 										  processInfo.getResult(), processInfo.getOpinion())
 					);
+			String title = userService.getTitleById(processInfo.getId());
+			if (title.equals("部门经理")) {
+				addMessageToDeputyGeneralManager(processInfo.getApplicationId());
+			} else if (title.equals("副总经理")) {
+				addMessageToGeneralManager(processInfo.getApplicationId());
+			}
 			return true;
 		} else {
 			return false;
@@ -203,16 +239,15 @@ public class LeaveService {
 	 */
 	public List<MemberBO> getLeaveMembers() {
 		List<MemberBO> members = new ArrayList<MemberBO>();
-		java.util.Date t0 = new java.util.Date();
-		java.sql.Date t1 = new java.sql.Date(t0.getTime());
-		String date = t1.toString();
+		java.util.Date t = new java.util.Date();
+		String date = new DateUtil().getDateFromDate(t);
 		List<Application> applications = applicationDao.qureyAllApplication();
 		for (Application application: applications) {
 			if ((application instanceof LeaveApplication) &&
 				(application.getStartTime().compareTo(date) <= 0) &&
 				(application.getEndTime().compareTo(date) >= 0)) {
 				int userId = application.getUserId();
-				Member member = memberDao.qureyUser(userId);
+				Member member = userService.getMembersById(userId);
 				MemberBO memberBO = new MemberBO();
 				memberBO.setId(userId);
 				memberBO.setName(member.getName());
@@ -230,8 +265,8 @@ public class LeaveService {
 			LeaderOpinionBO lob = new LeaderOpinionBO();
 			lob.setResult(opinion.getResult());
 			lob.setOpinion(opinion.getOpinion());
-			int leaderId = opinion.getApplicationId();
-			Member member = memberDao.qureyUser(leaderId);
+			int leaderId = opinion.getLeaderId();
+			Member member = userService.getMembersById(leaderId);
 			lob.setTitle(member.getTitle());
 			lob.setName(member.getName());
 			results.add(lob);
@@ -246,11 +281,45 @@ public class LeaveService {
 				LeaderOpinionBO lob = new LeaderOpinionBO();
 				lob.setResult(opinion.getResult());
 				lob.setOpinion(opinion.getOpinion());
-				Member member = memberDao.qureyUser(leaderId);
+				Member member = userService.getMembersById(leaderId);
 				lob.setTitle(member.getTitle());
 				lob.setName(member.getName());
 				applicationFB.setLeadersOpinion(lob);
 			}
+		}
+	}
+	
+	private int getBalance(int id, String type) {
+		List<HolidayBalance> holidays = applicationDao.qureyHolidayBalance(id);
+		for (HolidayBalance holiday: holidays) {
+			if (holiday.getType().equals(type)) {
+				return holiday.getBalance();
+			}
+		}
+		return -1;
+	}
+	
+	private void addMessageToDepartmentManager(int applicationId) {
+		List<Integer> ids = userService.getDepartmentManagerId();
+		addMessage(ids, applicationId);
+	}
+	
+	private void addMessageToGeneralManager(int applicationId) {
+		List<Integer> ids = userService.getGeneralManagerId();
+		addMessage(ids, applicationId);
+	}
+	
+	private void addMessageToDeputyGeneralManager(int applicationId) {
+		List<Integer> ids = userService.getDeputyGeneralManagerId();
+		addMessage(ids, applicationId);
+	}
+	
+	private void addMessage(List<Integer> ids, int applicationId) {
+		for (Integer id: ids) {
+			Message m = new Message();
+			m.setApplicationId(applicationId);
+			m.setUserId(id);
+			messageDao.insertMessage(m);
 		}
 	}
 

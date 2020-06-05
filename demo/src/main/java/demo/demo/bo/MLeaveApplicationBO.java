@@ -9,6 +9,7 @@ import java.util.List;
 public class MLeaveApplicationBO extends ApplicationBO {
 
 	private String type;
+	private int authority = 0;
 	private List<LeaderOpinionBO> leadersOpinion = new ArrayList<LeaderOpinionBO>();
 	
 	public MLeaveApplicationBO() {
@@ -20,7 +21,7 @@ public class MLeaveApplicationBO extends ApplicationBO {
 	}
 	
 	public void setType(String type) {
-		
+		this.type = type;
 	}
 
 	public List<LeaderOpinionBO> getLeadersOpinion() {
@@ -33,6 +34,18 @@ public class MLeaveApplicationBO extends ApplicationBO {
 	
 	public void addLeaderOpinion(LeaderOpinionBO leaderOpinion) {
 		this.leadersOpinion.add(leaderOpinion);
+	}
+	
+	public void setAuthority() {
+		authority = leadersOpinion.size();
+	}
+
+	public int getAuthority() {
+		return authority;
+	}
+
+	public void setAuthority(int authority) {
+		this.authority = authority;
 	}
 	
 }

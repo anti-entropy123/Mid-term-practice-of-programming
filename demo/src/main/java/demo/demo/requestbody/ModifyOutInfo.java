@@ -4,8 +4,8 @@ public class ModifyOutInfo {
 
 	private int id;
 	private int outId;
-	private String startTime;
-	private String endTime;
+	private long startTime;
+	private long endTime;
 	private String reason;
 	
 	public ModifyOutInfo() {}
@@ -26,19 +26,19 @@ public class ModifyOutInfo {
 		this.outId = outId;
 	}
 
-	public String getStartTime() {
+	public long getStartTime() {
 		return startTime;
 	}
 
-	public void setStartTime(String startTime) {
+	public void setStartTime(long startTime) {
 		this.startTime = startTime;
 	}
 
-	public String getEndTime() {
+	public long getEndTime() {
 		return endTime;
 	}
 
-	public void setEndTime(String endTime) {
+	public void setEndTime(long endTime) {
 		this.endTime = endTime;
 	}
 
