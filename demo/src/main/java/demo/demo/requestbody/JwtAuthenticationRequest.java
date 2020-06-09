@@ -1,4 +1,4 @@
-package demo.security.mySecurity;
+package demo.demo.requestbody;
 
 import java.io.Serializable;
 
@@ -12,13 +12,11 @@ public class  JwtAuthenticationRequest implements Serializable {
 
     public JwtAuthenticationRequest() {
         super();
-        System.out.println("***************** JwtAuthenticationRequest 无参构造  **********************");
     }
 
     public JwtAuthenticationRequest(String username, String password) {
         this.setUsername(username);
         this.setPassword(password);
-        System.out.println(String.format("***************** JwtAuthenticationRequest 有参构造 %s %s  **********************", username, password));
     }
 
     public String getUsername() {

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -42,8 +43,8 @@ public class ApplicationDao {
             type = "re-signed";
         }
         String sql = "insert " + applicationTable
-                + "(user_id, application_id, startTime, endTime, reason, type) values(?,?,?,?,?,?)";
-        jdbcTemplate.update(sql, application.getUserId(), application.getApplicationId(), application.getStartTime(),
+                + "(user_id, startTime, endTime, reason, type) values(?,?,?,?,?)";
+        jdbcTemplate.update(sql, application.getUserId(), application.getStartTime(),
                 application.getEndTime(), application.getReason(), type);
     }
 
@@ -95,8 +96,12 @@ public class ApplicationDao {
 
     public Application qureyApplicationByAppId(int applicationId) {
         String sql = "select * from " + applicationTable + " where application_id=?";
-        Map<String, Object> result = jdbcTemplate.queryForMap(sql, applicationId);
-        return transMapToApplication(result);
+        try{
+            Map<String, Object> result = jdbcTemplate.queryForMap(sql, applicationId);
+            return transMapToApplication(result);
+        }catch(EmptyResultDataAccessException e){
+            return null;
+        }
     }
 
     /*
@@ -190,16 +195,16 @@ public class ApplicationDao {
         String type = (String)result.getOrDefault("type", "unkown");
         if(type.equals("out")){
             application = new OutApplication(
+            	(int)result.get("application_id"), 
                 (int)result.get("user_id"), 
-                (int)result.get("application_id"), 
                 (String)result.get("startTime"), 
                 (String)result.get("endTime"), 
                 (String)result.get("reason"));
         // 如果是请假申请
         }else if(type.indexOf("Leave") >= 0 ){
             application = new LeaveApplication(
-                (int)result.get("user_id"),
                 (int)result.get("application_id"),
+                (int)result.get("user_id"),
                 (String)result.get("startTime"), 
                 (String)result.get("endTime"), 
                 (String)result.get("reason"),
@@ -221,16 +226,16 @@ public class ApplicationDao {
             String type = (String)result.getOrDefault("type", "unkown");
             if(type.equals("out")){
                 applications.add(new OutApplication(
-                    (int)result.get("user_id"), 
-                    (int)result.get("application_id"), 
+                	(int)result.get("application_id"), 
+                    (int)result.get("user_id"),
                     (String)result.get("startTime"), 
                     (String)result.get("endTime"), 
                     (String)result.get("reason")));
             // 如果是请假申请
             }else if(type.indexOf("Leave") >= 0 ){
                 applications.add(new LeaveApplication(
-                    (int)result.get("user_id"), 
                     (int)result.get("application_id"), 
+                    (int)result.get("user_id"), 
                     (String)result.get("startTime"), 
                     (String)result.get("endTime"), 
                     (String)result.get("reason"),

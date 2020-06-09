@@ -12,8 +12,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import demo.demo.dao.ApplicationDao;
 import demo.demo.dao.MemberDao;
+import demo.demo.entity.HolidayBalance;
 import demo.demo.entity.Member;
+import demo.utils.ConfigData;
 import demo.utils.JwtTokenUtil;
 import demo.security.mySecurity.JwtUser;
 
@@ -23,6 +26,8 @@ public class AuthServiceImpl implements AuthService{
     private UserDetailsService userDetailsService;
     private JwtTokenUtil jwtTokenUtil;
     private MemberDao memberDao;
+    private ApplicationDao applicationDao;
+    private ConfigData configData;
 
     @Value("{Jwt.tokenHead}")
     private String tokenHead;
@@ -32,11 +37,15 @@ public class AuthServiceImpl implements AuthService{
             AuthenticationManager authenticationManager,
             UserDetailsService userDetailsService,
             JwtTokenUtil jwtTokenUtil,
-            MemberDao memberDao){
+            MemberDao memberDao,
+            ApplicationDao applicationDao,
+            ConfigData configData){
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
         this.jwtTokenUtil = jwtTokenUtil;
         this.memberDao = memberDao;
+        this.applicationDao = applicationDao;
+        this.configData = configData;
     }
     
     @Override
@@ -53,17 +62,30 @@ public class AuthServiceImpl implements AuthService{
 
     @Override
     public void register(Member member){
-        final int userId = member.getId();
-        if(memberDao.qureyUser(userId) != null){
-            return;
-        }
-        else{
-            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-            final String rawPassword = member.getPassword();
-            member.setPassword(encoder.encode(rawPassword));
-            member.setTitle("普通员工");
-            memberDao.insertMember(member);
-        }
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        final String rawPassword = member.getPassword();
+        member.setPassword(encoder.encode(rawPassword));
+        
+        int userId = memberDao.insertMember(member);
+        // 设置年假
+        applicationDao.insertHolidayBalance(new HolidayBalance(userId, configData.getAnnualLeave(), "annualLeave"));
+        // 设置产假
+        applicationDao.insertHolidayBalance(new HolidayBalance(
+                                                userId,
+                                                member.getSex().equals("male")? 0: configData.getMaternityLeave(),
+                                                "maternityLeave"));
+        // 设置探亲假
+        applicationDao.insertHolidayBalance(new HolidayBalance(
+            userId, configData.getHomeLeave(), "homeLeave"
+        ));
+        // 设置病假
+        applicationDao.insertHolidayBalance(new HolidayBalance(
+            userId, configData.getSickLeave(), "sickLeave"
+        ));
+        // 设置事假
+        applicationDao.insertHolidayBalance(new HolidayBalance(
+            userId, configData.getAbsenceLeave(), "absenceLeave"
+        ));
     }
 
     @Override

@@ -22,10 +22,10 @@ public class SimpleCORSFilter implements Filter {
 		response.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, PATCH, OPTIONS, DELETE");
 		response.setHeader("Access-Control-Max-Age", "3600");
 		response.setHeader("Access-Control-Allow-Headers", "content-type, x-requested-with,authorization,X-XSRF-TOKEN");
-		//if (!request.getMethod().equalsIgnoreCase("OPTIONS")) {
+		if (!request.getMethod().equalsIgnoreCase("OPTIONS")) {
 			chain.doFilter(req, res);
-		//} else {
-		//}
+		} else {
+		}
 	}
 
 	public void init(FilterConfig filterConfig) {}

@@ -5,13 +5,15 @@ public class Member {
     private String name;
     private String password;
     private String title;
+    private String sex;
     
     public Member(){}
-    public Member(int userId, String name, String password, String title){
+    public Member(int userId, String name, String password, String title, String sex){
         this.id = userId;
         this.name = name;
         this.password = password;
         this.title = title;
+        this.sex = sex;
     }
 
     public int getId(){
@@ -40,5 +42,12 @@ public class Member {
     }
     public void setTitle(String title){
         this.title = title;
+    }
+
+    public String getSex(){
+        return this.sex;
+    }
+    public void setSex(String sex){
+        this.sex = sex;
     }
 }

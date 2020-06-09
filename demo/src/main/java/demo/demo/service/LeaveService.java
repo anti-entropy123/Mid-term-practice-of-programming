@@ -1,6 +1,9 @@
 package demo.demo.service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +23,12 @@ import demo.demo.entity.LeaderOpinion;
 import demo.demo.entity.LeaveApplication;
 import demo.demo.entity.Member;
 import demo.demo.entity.Message;
+import demo.demo.error.exception.BalanceNotEnough;
+import demo.demo.error.exception.EarlyThanCurrent;
+import demo.demo.error.exception.TimeCoincidence;
 import demo.demo.requestbody.LeaveInfo;
 import demo.demo.requestbody.ModifyLeaveInfo;
 import demo.demo.requestbody.ProcessInfo;
-import demo.utils.ApplicationIdUtil;
 import demo.utils.DateUtil;
 
 @Service
@@ -37,22 +42,32 @@ public class LeaveService {
 	private MessageDao messageDao;
 	@Autowired
 	private UserService userService;
+	final private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd");
 
 	/*
 	 * 添加请假
 	 */
 	public void addLeaveApplication(LeaveInfo leaveInfo) {
-		ApplicationIdUtil applicationIdService = ApplicationIdUtil.getInstance();
+		if(!new DateUtil().isLaterThanCurrentStartTime(leaveInfo.getStartTime())){
+			throw new EarlyThanCurrent("开始时间必须晚于今天");
+		}
 		LeaveApplication application = new LeaveApplication();
+		int balance = getBalance(leaveInfo.getId(), leaveInfo.getType());
+		balance -= new DateUtil().getDays(leaveInfo.getEndTime(), leaveInfo.getStartTime());
+
+		if(balance < 0){
+			throw new BalanceNotEnough("请假余额不足");
+		}else if(!islegalLeaveApplication(leaveInfo)){
+			throw new TimeCoincidence("这个时间段已经有其它申请了");
+		} 
+
 		application.setUserId(leaveInfo.getId());
 		application.setStartTime(new DateUtil().getDateFromLong(leaveInfo.getStartTime()));
 		application.setEndTime(new DateUtil().getDateFromLong(leaveInfo.getEndTime()));
 		application.setType(leaveInfo.getType());
 		application.setReason(leaveInfo.getReason());
-		application.setApplicationId(applicationIdService.getId());
+		application.setApplicationId(0);
 		
-		int balance = getBalance(leaveInfo.getId(), leaveInfo.getType());
-		balance -= new DateUtil().getDays(leaveInfo.getEndTime(), leaveInfo.getStartTime());
 		HolidayBalance holiday = new HolidayBalance();
 		holiday.setBalance(balance);
 		holiday.setId(leaveInfo.getId());
@@ -60,17 +75,38 @@ public class LeaveService {
 		applicationDao.updateHolidayBalance(holiday);
 		
 		applicationDao.insertApplication(application);
-		addMessageToDepartmentManager(leaveInfo.getId());
+		addMessageToDepartmentManager(application.getApplicationId());
 	}
 
 	/*
 	 * 修改请假申请
 	 */
 	public void modifyLeaveApplication(ModifyLeaveInfo modifyLeaveInfo) {
+		if(!new DateUtil().isLaterThanCurrentStartTime(modifyLeaveInfo.getStartTime())){
+			throw new EarlyThanCurrent("开始时间必须晚于今天");
+		}
 		List<LeaderOpinion> opinion = applicationDao.qureyLeaderOpinionByAppId(modifyLeaveInfo.getLeaveId());
 		if (opinion == null) {
 			return;
 		}
+		Application oldApplication = applicationDao.qureyApplicationByAppId(modifyLeaveInfo.getLeaveId());
+		int balance = getBalance(modifyLeaveInfo.getId(), modifyLeaveInfo.getType());
+		System.out.println(balance);
+		balance += new DateUtil().getDays(oldApplication.getEndTime(), oldApplication.getStartTime());
+		System.out.println(balance);
+		balance -= new DateUtil().getDays(modifyLeaveInfo.getEndTime(), modifyLeaveInfo.getStartTime());
+		
+		if(balance < 0){
+			throw new BalanceNotEnough("请假余额不足");
+		}else if(!islegalLeaveApplication(new LeaveInfo(
+											modifyLeaveInfo.getId(),	
+											modifyLeaveInfo.getStartTime(), 
+											modifyLeaveInfo.getEndTime(), 
+											modifyLeaveInfo.getType(), 
+											modifyLeaveInfo.getReason()))){
+			throw new TimeCoincidence("这个时间段已经有其它申请了");
+		}
+
 		LeaveApplication application = new LeaveApplication();
 		application.setUserId(modifyLeaveInfo.getId());
 		application.setStartTime(new DateUtil().getDateFromLong(modifyLeaveInfo.getStartTime()));
@@ -79,13 +115,7 @@ public class LeaveService {
 		application.setReason(modifyLeaveInfo.getReason());
 		application.setApplicationId(modifyLeaveInfo.getLeaveId());
 		
-		Application oldApplication = applicationDao.qureyApplicationByAppId(modifyLeaveInfo.getLeaveId());
-		int balance = getBalance(modifyLeaveInfo.getId(), modifyLeaveInfo.getType());
-		System.out.println(balance);
-		balance += new DateUtil().getDays(oldApplication.getEndTime(), oldApplication.getStartTime());
-		System.out.println(balance);
-		balance -= new DateUtil().getDays(modifyLeaveInfo.getEndTime(), modifyLeaveInfo.getStartTime());
-		System.out.println(balance);
+
 		HolidayBalance holiday = new HolidayBalance();
 		holiday.setBalance(balance);
 		holiday.setId(modifyLeaveInfo.getId());
@@ -190,22 +220,31 @@ public class LeaveService {
 	 * 为请假申请添加处理意见
 	 */
 	public boolean addOpinion(ProcessInfo processInfo) {
-		Application application = applicationDao.qureyApplicationByAppId(processInfo.getApplicationId());
-		if (application instanceof LeaveApplication) {
+		LeaveApplication application = (LeaveApplication)applicationDao.qureyApplicationByAppId(processInfo.getApplicationId());
+		// 如果领导不同意, 要给员工返还假期余额
+		if(processInfo.getResult().equals("refuse")) {
+			int balance = getBalance(application.getApplicationId(), application.getType());
+			balance += new DateUtil().getDays(application.getEndTime(), application.getStartTime());
+
+			HolidayBalance holiday = new HolidayBalance();
+			holiday.setBalance(balance);
+			holiday.setId(application.getApplicationId());
+			holiday.setType(application.getType());
+			applicationDao.updateHolidayBalance(holiday);
+		}
+		else {
 			applicationDao.updateApplicationResult(
 						new LeaderOpinion(processInfo.getId(), processInfo.getApplicationId(),
 										  processInfo.getResult(), processInfo.getOpinion())
 					);
 			String title = userService.getTitleById(processInfo.getId());
-			if (title.equals("部门经理")) {
+			if (title.equals("项目经理")) {
 				addMessageToDeputyGeneralManager(processInfo.getApplicationId());
 			} else if (title.equals("副总经理")) {
 				addMessageToGeneralManager(processInfo.getApplicationId());
 			}
-			return true;
-		} else {
-			return false;
 		}
+		return true;
 	}
 
 	/*
@@ -323,4 +362,30 @@ public class LeaveService {
 		}
 	}
 
+	/*
+	 * 检查请假申请是否合法, 即时间是否有重合
+	 * 
+	 */
+	private boolean islegalLeaveApplication(LeaveInfo info){	
+		DateUtil dateUtil = new DateUtil();
+		try{
+			Date needStartTime = simpleDateFormat.parse(dateUtil.getDateFromLong(info.getStartTime()));
+			Date needEndTime = simpleDateFormat.parse(dateUtil.getDateFromLong(info.getEndTime()));
+			List<Application> apps = applicationDao.qureyApplicationById(info.getId());
+			for(Application app: apps){
+				Date oldStartTime = simpleDateFormat.parse(app.getStartTime());
+				Date oldEndTime = simpleDateFormat.parse(app.getEndTime());
+				if(
+					(needStartTime.getTime()-oldEndTime.getTime())>0 ||
+					(needEndTime.getTime()-oldStartTime.getTime())<0
+				){
+				}else{
+					return false;
+				}
+			}
+		}catch(ParseException e){
+			throw new RuntimeException("时间格式错误");
+		}
+		return true;
+	}	
 }

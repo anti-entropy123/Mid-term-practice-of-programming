@@ -3,11 +3,16 @@ package demo.demo.dao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 
 import demo.demo.entity.Member;
 import demo.demo.mappers.MemberRowMapper;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
@@ -39,8 +44,12 @@ public class MemberDao {
     */
     public String qureyUsernameById(int id){
         String sql = "select name from "+ memberTable + " where id = ?";
-        Map<String, Object> name = jdbcTemplate.queryForMap(sql, id);
-        return (String)name.getOrDefault("name", "null");
+        try{
+            Map<String, Object> name = jdbcTemplate.queryForMap(sql, id);
+            return (String)name.getOrDefault("name", "null");
+        }catch(EmptyResultDataAccessException e){
+            return null;
+        }
     }
     /* 
         作用:   根据 id 返回对应的 password 数据
@@ -65,12 +74,23 @@ public class MemberDao {
     }
 
     /* 
-        作用:   增加一名员工, (目前来看没有什么用)
+        作用:   增加一名员工
         输入:   员工实例对象
-        返回:   无
+        返回:   新增的员工的id
     */
-    public void insertMember(Member m){
-        String sql = "insert " + memberTable + " (id, password, name, title) values(?,?,?,?)";
-        jdbcTemplate.update(sql, m.getId(), m.getPassword(), m.getName(), m.getTitle());
+    public int insertMember(Member m){
+        String sql = "insert " + memberTable + " (password, name, title, sex) values(?,?,?,?)";
+        
+        KeyHolder KeyHolder = new GeneratedKeyHolder();
+        PreparedStatementCreator preparedStatementCreator = con -> {
+            PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, m.getPassword());
+            ps.setString(2, m.getName());
+            ps.setString(3, m.getTitle());
+            ps.setString(4, m.getSex());
+            return ps;
+        };
+        jdbcTemplate.update(preparedStatementCreator, KeyHolder);
+        return KeyHolder.getKey().intValue();
     }
 }

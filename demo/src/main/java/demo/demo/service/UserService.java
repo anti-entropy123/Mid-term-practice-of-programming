@@ -109,10 +109,10 @@ public class UserService {
 	}
 	
 	/*
-	 * 返回部门经理id
+	 * 返回项目经理id
 	 */
 	public List<Integer> getDepartmentManagerId() {
-		return getTitleId("部门经理");
+		return getTitleId("项目经理");
 	}
 	
 	private List<Integer> getTitleId(String title) {

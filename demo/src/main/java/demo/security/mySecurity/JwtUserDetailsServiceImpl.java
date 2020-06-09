@@ -12,7 +12,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import demo.security.mySecurity.JwtUser;
 import demo.demo.dao.MemberDao;
 import demo.demo.entity.Member;
 
@@ -29,9 +28,11 @@ public class JwtUserDetailsServiceImpl implements UserDetailsService {
                 temp.add("ROLE_普通员工");
                 break;
             case "行政部员工":
+                temp.add("ROLE_普通员工");
                 temp.add("ROLE_行政部员工");
                 break;
             case "财务部员工":
+                temp.add("ROLE_普通员工");
                 temp.add("ROLE_财务部员工");
                 break;
             case "项目经理":

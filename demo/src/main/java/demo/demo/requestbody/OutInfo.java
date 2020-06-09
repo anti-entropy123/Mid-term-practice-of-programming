@@ -10,6 +10,16 @@ public class OutInfo {
 	public OutInfo() {
 		
 	}
+	public OutInfo(
+			int id,
+			long startTime,
+			long endTime,
+			String reason) {
+		this.id = id;
+		this.startTime = startTime;
+		this.endTime = endTime;
+		this.reason = reason;
+	}
 
 	public int getId() {
 		return id;

@@ -2,11 +2,6 @@ package demo.demo.controller;
 
 import java.util.List;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,12 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import demo.demo.bo.ApplicationBO;
 import demo.demo.bo.MinLeaveApplicationBO;
 import demo.demo.bo.MinOutApplicationBO;
 import demo.demo.bo.UserDataBO;
-import demo.demo.requestbody.IdInfo;
 import demo.demo.requestbody.LeaveInfo;
-import demo.demo.requestbody.LogInfo;
 import demo.demo.requestbody.ModifyLeaveInfo;
 import demo.demo.requestbody.ModifyOutInfo;
 import demo.demo.requestbody.ModifyRemedyInfo;
@@ -108,7 +102,6 @@ public class AttendanceJsonController {
 	 * 6.5 日新增 by yjn
 	 * 
 	 */ 
-	@PreAuthorize("hasRole('普通员工')")
 	@GetMapping("/api/user")
 	LoginStatusVO loginStatus(@RequestHeader HttpHeaders headers){
 		String token = headers.get("Authorization").get(0).substring("Bearer ".length());
@@ -208,8 +201,8 @@ public class AttendanceJsonController {
 	 */
 	@PreAuthorize("hasRole('普通员工')")
 	@GetMapping("/api/record")
-	PersonRecordVO getRecords(@RequestBody IdInfo id) {
-		return new PersonRecordVO(recordService.getRecordsById(id.getId()));
+	PersonRecordVO getRecords(@RequestParam int id) {
+		return new PersonRecordVO(recordService.getRecordsById(id));
 	}
 	
 	/*
@@ -218,8 +211,8 @@ public class AttendanceJsonController {
 	 */
 	@PreAuthorize("hasRole('普通员工')")
 	@GetMapping("/api/user/status")
-	CurrentStatusVO getStatus(@RequestBody IdInfo id) {
-		String status = userService.getStatusById(id.getId());//String
+	CurrentStatusVO getStatus(@RequestParam int id) {
+		String status = userService.getStatusById(id);//String
 		return new CurrentStatusVO(status);
 	}
 	
@@ -229,8 +222,8 @@ public class AttendanceJsonController {
 	 */
 	@PreAuthorize("hasRole('普通员工')")
 	@GetMapping("/api/user/Holidaybalance")
-	HolidayBalanceVO getHolidayBalance(@RequestBody IdInfo id) {
-		return new HolidayBalanceVO(leaveService.getHolidayBalanceById(id.getId()));
+	HolidayBalanceVO getHolidayBalance(@RequestParam int id) {
+		return new HolidayBalanceVO(leaveService.getHolidayBalanceById(id));
 	}
 	
 	/*
@@ -239,7 +232,7 @@ public class AttendanceJsonController {
 	 */
 	@PreAuthorize("hasRole('普通员工')")
 	@GetMapping("/api/user/employees")
-	UserListVO getMembersList(@RequestBody IdInfo id) {
+	UserListVO getMembersList() {
 		return new UserListVO(userService.getMembers());
 	}
 	
@@ -249,7 +242,7 @@ public class AttendanceJsonController {
 	 */
 	@PreAuthorize("hasRole('普通员工')")
 	@GetMapping("/api/user/employees/{otherUserId}")
-	OtherMemberStatusVO getOthersStatus(@RequestBody IdInfo id, @PathVariable int otherUserId) {
+	OtherMemberStatusVO getOthersStatus(@PathVariable int otherUserId) {
 		int userId = otherUserId;
 		String name = userService.getNameById(otherUserId);
 		String status = userService.getStatusById(otherUserId);
@@ -261,14 +254,13 @@ public class AttendanceJsonController {
 	 * 某个人的全部数据
 	 * done1
 	 */
-	// TODO
 	@GetMapping("/api/administration-department/after-process/data")
-	UserDataVO getUserDataById(@RequestBody IdInfo id) {
-		String userName = userService.getNameById(id.getId());
-		List<MinLeaveApplicationBO> leaves = leaveService.getMinLeaveApplicationById(id.getId());
-		List<MinOutApplicationBO> outs = outService.getMinOutApplicationById(id.getId());
-		int unsigned = recordService.getUnsignedById(id.getId());
-		int overTime = overtimeService.getOvertimeById(id.getId());
+	UserDataVO getUserDataById(@RequestParam int id) {
+		String userName = userService.getNameById(id);
+		List<MinLeaveApplicationBO> leaves = leaveService.getMinLeaveApplicationById(id);
+		List<MinOutApplicationBO> outs = outService.getMinOutApplicationById(id);
+		int unsigned = recordService.getUnsignedById(id);
+		int overTime = overtimeService.getOvertimeById(id);
 		UserDataBO data = new UserDataBO();
 		data.setUserName(userName);
 		data.setLeaves(leaves);
@@ -283,12 +275,17 @@ public class AttendanceJsonController {
 	 * done1
 	 */
 	@PreAuthorize("hasRole('普通员工')")
-	@GetMapping("/api/user/messages/application/")
-	MessagesVO getApplications(@RequestParam(name = "type") int type, @RequestBody IdInfo id) {
+	@GetMapping("/api/user/messages/application")
+	MessagesVO getApplications(@RequestParam(name = "type") int type, @RequestParam int id) {
 		if (type == 0) {
-			return new MessagesVO(leaveService.getApplicationResultById(id.getId()));
+			return new MessagesVO(leaveService.getApplicationResultById(id));
+		} else if (type == 1){
+			return new MessagesVO(outService.getApplicationResultById(id));
 		} else {
-			return new MessagesVO(outService.getApplicationResultById(id.getId()));
+			List<ApplicationBO> list1 = leaveService.getApplicationResultById(id);
+			List<ApplicationBO> list2 = outService.getApplicationResultById(id);
+			list1.addAll(list2);
+			return new MessagesVO(list1);
 		}
 	}
 	
@@ -296,13 +293,19 @@ public class AttendanceJsonController {
 	 * 获取自己要处理的信息
 	 * done1
 	 */
+
 	@PreAuthorize("hasRole('项目经理')")
-	@GetMapping("/api/user/messages/process-application/")
-	MessagesVO getProcess(@RequestParam(name = "type") int type, @RequestBody IdInfo id) {
+	@GetMapping("/api/user/messages/process-application")
+	MessagesVO getProcess(@RequestParam(name = "type") int type, @RequestParam int id) {
 		if (type == 0) {
-			return new MessagesVO(leaveService.getNeedToProcessById(id.getId()));
+			return new MessagesVO(leaveService.getNeedToProcessById(id));
+		} else if (type == 1){
+			return new MessagesVO(outService.getNeedToProcessById(id));
 		} else {
-			return new MessagesVO(outService.getNeedToProcessById(id.getId()));
+			List<ApplicationBO> list1 = leaveService.getNeedToProcessById(id);
+			List<ApplicationBO> list2 = outService.getNeedToProcessById(id);
+			list1.addAll(list2);
+			return new MessagesVO(list1);
 		}
 	}
 	
@@ -325,8 +328,8 @@ public class AttendanceJsonController {
 	 */
 	@PreAuthorize("hasRole('副总经理')")
 	@GetMapping("/api/manager/approval-results")
-	ApplicationForBossVO getApplicationResults(@RequestBody IdInfo id) {
-		return new ApplicationForBossVO(leaveService.getProcessApplicationResultsById(id.getId()));
+	ApplicationForBossVO getApplicationResults(@RequestParam int id) {
+		return new ApplicationForBossVO(leaveService.getProcessApplicationResultsById(id));
 	}
 	
 	/*
@@ -334,7 +337,7 @@ public class AttendanceJsonController {
 	 */
 	@PreAuthorize("hasRole('副总经理')")
 	@GetMapping("/api/manager/all/leaving-members")
-	LeaveMembersVO getLeaveMembers(@RequestBody IdInfo id) {
+	LeaveMembersVO getLeaveMembers() {
 		LeaveMembersVO lmv = new LeaveMembersVO(leaveService.getLeaveMembers());
 		return lmv;
 	}
@@ -344,7 +347,7 @@ public class AttendanceJsonController {
 	 */
 	@PreAuthorize("hasRole('副总经理')")
 	@GetMapping("/api/manager/all/outing-members")
-	OutMembersVO getOutMembers(@RequestBody IdInfo id) {
+	OutMembersVO getOutMembers() {
 		OutMembersVO omv = new OutMembersVO(outService.getOutMembers());
 		return omv;
 	}
@@ -354,7 +357,7 @@ public class AttendanceJsonController {
 	 */
 	@PreAuthorize("hasRole('副总经理')")
 	@GetMapping("/api/manager/all/overtime-members")
-	OverTimeMembersVO getOvertimeMembers(@RequestBody IdInfo id) {
+	OverTimeMembersVO getOvertimeMembers() {
 		OverTimeMembersVO otv = new OverTimeMembersVO(overtimeService.getOvertimeMembers());
 		return otv;
 	}

@@ -11,6 +11,13 @@ public class LeaveInfo {
 	public LeaveInfo() {
 		
 	}
+	public LeaveInfo(int id, long startTime, long endTime, String type, String reason){
+		this.id = id;
+		this.startTime = startTime;
+		this.endTime = endTime;
+		this.type = type;
+		this.reason = reason;
+	}
 
 	public int getId() {
 		return id;

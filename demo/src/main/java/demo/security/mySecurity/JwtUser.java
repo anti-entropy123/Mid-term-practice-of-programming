@@ -1,7 +1,6 @@
 package demo.security.mySecurity;
 
 import java.util.Collection;
-import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

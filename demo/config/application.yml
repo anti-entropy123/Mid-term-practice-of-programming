@@ -1,8 +1,7 @@
 # Server configuration
 server:
   port: 8080
-  servlet:
-    context-path:
+  contextPath:
 
 # Spring configuration
 spring:
@@ -24,6 +23,12 @@ spring:
    # naming:        
    #     physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy    
    #     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect 
+    
+  
+spring.thymeleaf.cache: false
+server.tomcat.access_log_enabled: true  
+server.tomcat.basedir: target/tomcat 
+
  
 # JWT
 jwt:
@@ -34,7 +39,7 @@ jwt:
   supercode: "99999"
   route:
     authentication:
-      path: /api/user/ 
+      path: /api/login/
       register: /api/user/register/
 #      refresh:
 
@@ -46,4 +51,11 @@ logging:
       security: DEBUG
 #spring.boot.admin.url: http://localhost:8080
 
-
+# default balance
+default:
+  balance:
+    annualLeave: 7
+    maternityLeave: 90
+    homeLeave: 7
+    sickLeave: -1
+    absenceLeave: -1

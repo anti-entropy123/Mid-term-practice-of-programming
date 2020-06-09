@@ -1,4 +1,4 @@
-package demo.security.mySecurity;
+package demo.demo.vo;
 
 import java.io.Serializable;
 

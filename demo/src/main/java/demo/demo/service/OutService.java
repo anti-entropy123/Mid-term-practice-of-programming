@@ -1,6 +1,9 @@
 package demo.demo.service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +21,11 @@ import demo.demo.entity.LeaderOpinion;
 import demo.demo.entity.Member;
 import demo.demo.entity.Message;
 import demo.demo.entity.OutApplication;
+import demo.demo.error.exception.EarlyThanCurrent;
+import demo.demo.error.exception.TimeCoincidence;
 import demo.demo.requestbody.ModifyOutInfo;
 import demo.demo.requestbody.OutInfo;
 import demo.demo.requestbody.ProcessInfo;
-import demo.utils.ApplicationIdUtil;
 import demo.utils.DateUtil;
 
 @Service
@@ -35,32 +39,39 @@ public class OutService {
 	private MessageDao messageDao;
 	@Autowired
 	private UserService userService;
-	
+	final private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd");
 	/*
 	 * 添加外出申请
 	 */
 	public void addOutApplication(OutInfo outInfo) {
-		ApplicationIdUtil applicationIdService = ApplicationIdUtil.getInstance();
 		OutApplication application = new OutApplication();
+		if(!islegalLeaveApplication(outInfo)){
+			throw new TimeCoincidence("这个时间段有其它申请了");
+		}else if(!new DateUtil().isLaterThanCurrentStartTime(outInfo.getStartTime())){
+			throw new EarlyThanCurrent("开始时间必须晚于今天");
+		}
 		application.setUserId(outInfo.getId());
 		application.setStartTime(new DateUtil().getDateFromLong(outInfo.getStartTime()));
 		application.setEndTime(new DateUtil().getDateFromLong(outInfo.getEndTime()));
 		application.setReason(outInfo.getReason());
-		application.setApplicationId(applicationIdService.getId());
+		application.setApplicationId(0);
 		applicationDao.insertApplication(application);
 		addMessageToDepartmentManager(outInfo.getId());
 	}
 	
-	
-
 	/*
 	 * 修改外出申请
 	 * 加判断
 	 */
 	public void modifyOutApplication(ModifyOutInfo modifyOutInfo) {
-		List<LeaderOpinion> opinion = applicationDao.qureyLeaderOpinionByAppId(modifyOutInfo.getOutId());
-		if (opinion == null) {
-			return;
+		if (!islegalLeaveApplication(new OutInfo(
+									modifyOutInfo.getId(), 
+									modifyOutInfo.getStartTime(),
+									modifyOutInfo.getEndTime(), 
+									modifyOutInfo.getReason()))){
+			throw new TimeCoincidence("这个时间段已经有其它申请了");
+		} else if(!new DateUtil().isLaterThanCurrentStartTime(modifyOutInfo.getStartTime())){
+			throw new EarlyThanCurrent("开始时间必须晚于今天");
 		}
 		OutApplication application = new OutApplication();
 		application.setUserId(modifyOutInfo.getId());
@@ -145,7 +156,7 @@ public class OutService {
 								  processInfo.getResult(), processInfo.getOpinion())
 			);
 		String title = userService.getTitleById(processInfo.getId());
-		if (title.equals("部门经理")) {
+		if (title.equals("项目经理")) {
 			addMessageToDeputyGeneralManager(processInfo.getApplicationId());
 		} else if (title.equals("副总经理")) {
 			addMessageToGeneralManager(processInfo.getApplicationId());
@@ -215,6 +226,32 @@ public class OutService {
 			m.setUserId(id);
 			messageDao.insertMessage(m);
 		}
+	}
+	/*
+	 * 检查外出申请是否合法, 即时间是否有重合
+	 * 
+	 */
+	private boolean islegalLeaveApplication(OutInfo info){	
+		DateUtil dateUtil = new DateUtil();
+		try{
+			Date needStartTime = simpleDateFormat.parse(dateUtil.getDateFromLong(info.getStartTime()));
+			Date needEndTime = simpleDateFormat.parse(dateUtil.getDateFromLong(info.getEndTime()));
+			List<Application> apps = applicationDao.qureyApplicationById(info.getId());
+			for(Application app: apps){
+				Date oldStartTime = simpleDateFormat.parse(app.getStartTime());
+				Date oldEndTime = simpleDateFormat.parse(app.getEndTime());
+				if(
+					(needStartTime.getTime()-oldEndTime.getTime())>0 ||
+					(needEndTime.getTime()-oldStartTime.getTime())<0
+				){
+				}else{
+					return false;
+				}
+			}
+		}catch(ParseException e){
+			throw new RuntimeException("时间格式错误");
+		}
+		return true;
 	}
 	
 }
