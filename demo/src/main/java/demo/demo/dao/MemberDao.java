@@ -81,7 +81,7 @@ public class MemberDao {
     public int insertMember(Member m){
         String sql = "insert " + memberTable + " (password, name, title, sex) values(?,?,?,?)";
         
-        KeyHolder KeyHolder = new GeneratedKeyHolder();
+        KeyHolder keyHolder = new GeneratedKeyHolder();
         PreparedStatementCreator preparedStatementCreator = con -> {
             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, m.getPassword());
@@ -90,7 +90,7 @@ public class MemberDao {
             ps.setString(4, m.getSex());
             return ps;
         };
-        jdbcTemplate.update(preparedStatementCreator, KeyHolder);
-        return KeyHolder.getKey().intValue();
+        jdbcTemplate.update(preparedStatementCreator, keyHolder);
+        return keyHolder.getKey().intValue();
     }
 }
