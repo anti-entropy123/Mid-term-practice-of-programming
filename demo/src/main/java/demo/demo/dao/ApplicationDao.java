@@ -1,5 +1,7 @@
 package demo.demo.dao;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,6 +12,9 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 
 import demo.demo.entity.Application;
@@ -30,9 +35,9 @@ public class ApplicationDao {
     final private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd");
 
     /*
-     * 作用: 增加一条申请 输入: 要增加的申请, 例如如果增加一个外出申请, 就传来一个OutApplication的实例 返回: 无
+     * 作用: 增加一条申请 输入: 要增加的申请, 例如如果增加一个外出申请, 就传来一个OutApplication的实例 返回: 插入申请的id值
      */
-    public void insertApplication(Application application) {
+    public int insertApplication(Application application) {
         String type;
         if (application instanceof OutApplication) {
             type = "out";
@@ -42,10 +47,21 @@ public class ApplicationDao {
             // todo 补签申请
             type = "re-signed";
         }
+        
         String sql = "insert " + applicationTable
                 + "(user_id, startTime, endTime, reason, type) values(?,?,?,?,?)";
-        jdbcTemplate.update(sql, application.getUserId(), application.getStartTime(),
-                application.getEndTime(), application.getReason(), type);
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        PreparedStatementCreator preparedStatementCreator = con -> {
+            PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, application.getUserId());
+            ps.setString(2, application.getStartTime());
+            ps.setString(3, application.getEndTime());
+            ps.setString(4, application.getReason());
+            ps.setString(5, type);
+            return ps;
+        };
+        jdbcTemplate.update(preparedStatementCreator, keyHolder);
+        return keyHolder.getKey().intValue();
     }
 
     /*

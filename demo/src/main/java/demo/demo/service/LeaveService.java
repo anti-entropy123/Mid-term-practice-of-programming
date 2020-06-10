@@ -23,6 +23,7 @@ import demo.demo.entity.LeaderOpinion;
 import demo.demo.entity.LeaveApplication;
 import demo.demo.entity.Member;
 import demo.demo.entity.Message;
+import demo.demo.error.exception.AlreadyHasOpinion;
 import demo.demo.error.exception.BalanceNotEnough;
 import demo.demo.error.exception.EarlyThanCurrent;
 import demo.demo.error.exception.TimeCoincidence;
@@ -74,8 +75,8 @@ public class LeaveService {
 		holiday.setType(leaveInfo.getType());
 		applicationDao.updateHolidayBalance(holiday);
 		
-		applicationDao.insertApplication(application);
-		addMessageToDepartmentManager(application.getApplicationId());
+		int applicationId = applicationDao.insertApplication(application);
+		addMessageToDepartmentManager(applicationId);
 	}
 
 	/*
@@ -209,7 +210,6 @@ public class LeaveService {
 				mApplication.setType(((LeaveApplication) application).getType());
 				mApplication.setReason(application.getReason());
 				getLeaderOpinion(mApplication);
-				mApplication.setAuthority();
 				mApplications.add(mApplication);
 			}
 		}
@@ -220,23 +220,32 @@ public class LeaveService {
 	 * 为请假申请添加处理意见
 	 */
 	public boolean addOpinion(ProcessInfo processInfo) {
-		LeaveApplication application = (LeaveApplication)applicationDao.qureyApplicationByAppId(processInfo.getApplicationId());
+		Application application = applicationDao.qureyApplicationByAppId(processInfo.getApplicationId());
+		// 先判断是不是请假
+		if(!(application instanceof LeaveApplication)){
+			return false;
+		}
+		try{
+			// 向数据库中加入这条领导审批结果
+			applicationDao.updateApplicationResult(
+							new LeaderOpinion(processInfo.getId(), processInfo.getApplicationId(),
+											processInfo.getResult(), processInfo.getOpinion()));
+		}catch(RuntimeException e){
+			throw new AlreadyHasOpinion("你已经审批过这个申请了");
+		}
 		// 如果领导不同意, 要给员工返还假期余额
-		if(processInfo.getResult().equals("refuse")) {
-			int balance = getBalance(application.getApplicationId(), application.getType());
-			balance += new DateUtil().getDays(application.getEndTime(), application.getStartTime());
-
+		if(processInfo.getResult().equals("disagree")) {
+			LeaveApplication la = (LeaveApplication)application;
+			int balance = getBalance(la.getUserId(), la.getType());
+			balance += new DateUtil().getDays(la.getEndTime(), la.getStartTime());
 			HolidayBalance holiday = new HolidayBalance();
 			holiday.setBalance(balance);
-			holiday.setId(application.getApplicationId());
-			holiday.setType(application.getType());
+			holiday.setId(la.getUserId());
+			holiday.setType(la.getType());
 			applicationDao.updateHolidayBalance(holiday);
 		}
-		else {
-			applicationDao.updateApplicationResult(
-						new LeaderOpinion(processInfo.getId(), processInfo.getApplicationId(),
-										  processInfo.getResult(), processInfo.getOpinion())
-					);
+		// 如果领导同意, 则要给其它领导发送消息
+		else{
 			String title = userService.getTitleById(processInfo.getId());
 			if (title.equals("项目经理")) {
 				addMessageToDeputyGeneralManager(processInfo.getApplicationId());
@@ -244,6 +253,7 @@ public class LeaveService {
 				addMessageToGeneralManager(processInfo.getApplicationId());
 			}
 		}
+		
 		return true;
 	}
 
@@ -300,7 +310,12 @@ public class LeaveService {
 	private void getLeaderOpinion(MLeaveApplicationBO application) {
 		List<LeaderOpinion> opinions = applicationDao.qureyLeaderOpinionByAppId(application.getApplicationId());
 		List<LeaderOpinionBO> results = new ArrayList<LeaderOpinionBO>();
+		boolean refuseFlag = false;
+
 		for (LeaderOpinion opinion: opinions) {
+			if(opinion.getResult().equals("disagree")){
+				refuseFlag = true;
+			}
 			LeaderOpinionBO lob = new LeaderOpinionBO();
 			lob.setResult(opinion.getResult());
 			lob.setOpinion(opinion.getOpinion());
@@ -310,6 +325,7 @@ public class LeaveService {
 			lob.setName(member.getName());
 			results.add(lob);
 		}
+		application.setAuthority(refuseFlag? 3: results.size());
 		application.setLeadersOpinion(results);
 	}
 	

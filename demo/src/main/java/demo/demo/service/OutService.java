@@ -55,8 +55,8 @@ public class OutService {
 		application.setEndTime(new DateUtil().getDateFromLong(outInfo.getEndTime()));
 		application.setReason(outInfo.getReason());
 		application.setApplicationId(0);
-		applicationDao.insertApplication(application);
-		addMessageToDepartmentManager(outInfo.getId());
+		int applicationId = applicationDao.insertApplication(application);
+		addMessageToDepartmentManager(applicationId);
 	}
 	
 	/*
@@ -140,7 +140,6 @@ public class OutService {
 				mApplication.setEndTime(application.getEndTime());
 				mApplication.setReason(application.getReason());
 				getLeaderOpinion(mApplication);
-				mApplication.setAuthority();
 				mApplications.add(mApplication);
 			}
 		}
@@ -190,7 +189,12 @@ public class OutService {
 	private void getLeaderOpinion(MOutApplicationBO application) {
 		List<LeaderOpinion> opinions = applicationDao.qureyLeaderOpinionByAppId(application.getApplicationId());
 		List<LeaderOpinionBO> results = new ArrayList<LeaderOpinionBO>();
+		boolean refuseFlag = false;
 		for (LeaderOpinion opinion: opinions) {
+			// 如果被拒绝了, 那么直接结束;
+			if(opinion.getResult().equals("disagree")){
+				refuseFlag = true;
+			}
 			LeaderOpinionBO lob = new LeaderOpinionBO();
 			lob.setResult(opinion.getResult());
 			lob.setOpinion(opinion.getOpinion());
@@ -200,6 +204,7 @@ public class OutService {
 			lob.setName(member.getName());
 			results.add(lob);
 		}
+		application.setAuthority(refuseFlag? 3: results.size());
 		application.setLeadersOpinion(results);
 	}
 	
